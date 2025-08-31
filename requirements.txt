@@ -1,0 +1,2 @@
+# NetBox SCION Plugin Requirements
+# This plugin is designed to work with NetBox 3.5+

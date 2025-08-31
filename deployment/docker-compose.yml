@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  netbox:
+    # Use your existing NetBox image
+    image: netboxcommunity/netbox:latest
+    
+    # Add volume mount for plugin (development method)
+    volumes:
+      # Mount the plugin source code
+      - ./netbox_scion:/opt/netbox/netbox/plugins/netbox_scion:ro
+      # Mount custom configuration
+      - ./configuration.py:/etc/netbox/config/configuration.py:ro
+      # Your existing volumes...
+      
+    # Environment variables (adjust as needed)
+    environment:
+      # Your existing environment variables...
+      DB_NAME: netbox
+      DB_USER: netbox
+      DB_PASSWORD: your_password
+      DB_HOST: postgres
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      
+    depends_on:
+      - postgres
+      - redis
+      
+  postgres:
+    # Your existing postgres configuration...
+    image: postgres:13
+    environment:
+      POSTGRES_DB: netbox
+      POSTGRES_USER: netbox
+      POSTGRES_PASSWORD: your_password
+      
+  redis:
+    # Your existing redis configuration...
+    image: redis:7-alpine
