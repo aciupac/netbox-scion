@@ -1,153 +1,121 @@
 # NetBox SCION Plugin
 
-A NetBox plugin for managing SCION Links Assignment, Organizations, and ISD-ASes (Isolation Domain - Autonomous Systems).
+A comprehensive NetBox plugin for managing SCION (Scalability, Control, and Isolation On Next-generation networks) infrastructure.
 
-## Features
+## 🚀 Quick Start
 
-- **Organizations**: Manage organizations that operate ISD-ASes
-- **ISD-ASes**: Track SCION ISD-AS identifiers with their organizations and core nodes
-- **SCION Link Assignments**: Manage interface assignments to customers with Zendesk ticket tracking
-- **Full REST API**: Complete CRUD operations via REST API
-- **Export Support**: Export data to Excel/CSV format
-- **Advanced Filtering**: Filter link assignments by customer information
-- **Audit Logging**: Track all changes with NetBox's built-in change logging
+### Prerequisites
+- NetBox deployment using netbox-docker
+- Docker and Docker Compose
 
-## Models
-
-### Organization
-- `short_name`: Unique short name for the organization
-- `full_name`: Full organization name
-- `description`: Optional description
-
-### ISDAS (ISD-AS)
-- `isd_as`: Unique identifier in format `{isd}-{as}` (e.g., `1-ff00:0:110`)
-- `organization`: Reference to the operating organization
-- `cores`: List of core nodes (PostgreSQL ArrayField or JSON)
-- `description`: Optional description
-
-### SCIONLinkAssignment
-- `isd_as`: Reference to the ISD-AS
-- `interface_id`: Interface ID (unique per ISD-AS)
-- `customer_id`: Customer identifier
-- `customer_name`: Customer name
-- `zendesk_ticket`: Zendesk ticket number (with automatic URL generation)
-
-## Installation
-
-1. Install the plugin:
+### Installation
+1. Copy the deployment files to your netbox-docker directory:
 ```bash
-pip install netbox-scion
+cp -r deployment/* /path/to/your/netbox-docker/
 ```
 
-2. Add to NetBox's `PLUGINS` configuration in `configuration.py`:
+2. Update your `docker-compose.yml` to use the custom Dockerfile:
+```yaml
+services:
+  netbox:
+    build:
+      context: .
+      dockerfile: Dockerfile.netbox-fixed
+```
+
+3. Add to your NetBox `plugins.py` file:
 ```python
 PLUGINS = [
     'netbox_scion',
+    # Your existing plugins...
 ]
 ```
 
-3. Run migrations:
+4. Add to your `env/netbox.env`:
 ```bash
-python manage.py migrate
+PLUGINS_REQUIREMENTS=netbox_scion
 ```
 
-4. Restart NetBox:
+5. Deploy:
 ```bash
-sudo systemctl restart netbox
+cd /path/to/your/netbox-docker
+docker-compose down
+docker-compose build --no-cache netbox
+docker-compose up -d
 ```
 
-## Configuration
+See [deployment/README.md](deployment/README.md) for detailed instructions.
 
-No additional configuration is required. The plugin works out-of-the-box with NetBox's default settings.
+## 🏗️ Features
 
-## Usage
+### Organizations
+- Manage SCION organizations with short and full names
+- Description and metadata fields
+- REST API and export capabilities
 
-### Web Interface
-- Navigate to "SCION" in the NetBox menu
-- Access Organizations, ISD-ASes, and Link Assignments
-- Use the filtering capabilities for SCION Link Assignments
+### ISD-ASes (Isolation Domain - Autonomous System)
+- ISD-AS identifier management with regex validation (`^\d+-[0-9a-f]{1,4}:[0-9a-f]{1,4}:[0-9a-f]{1,4}$`)
+- Organization association
+- Core nodes list support
+- Detailed descriptions
 
-### REST API
-The plugin provides full REST API access:
+### SCION Link Assignments
+- Interface assignment management (interface_id per ISD-AS must be unique)
+- Customer information (ID and name)
+- Zendesk ticket integration
+- Advanced filtering and search capabilities
+
+## 🎯 Navigation
+
+Plugin appears under the "Plugins" section in NetBox sidebar with:
+- Organizations
+- ISD-ASes
+- SCION Link Assignments
+
+## 🔧 API Endpoints
 
 - Organizations: `/api/plugins/scion/organizations/`
 - ISD-ASes: `/api/plugins/scion/isd-ases/`
 - Link Assignments: `/api/plugins/scion/link-assignments/`
 
-### Export
-All models support export to Excel/CSV format through the web interface.
+All endpoints support full CRUD operations with filtering, pagination, and export.
 
-## API Examples
+## 📁 Development
 
-### Create an Organization
-```bash
-curl -X POST http://netbox.example.com/api/plugins/scion/organizations/ 
-  -H "Authorization: Token YOUR_TOKEN" 
-  -H "Content-Type: application/json" 
-  -d '{
-    "short_name": "ACME",
-    "full_name": "ACME Corporation",
-    "description": "Sample organization"
-  }'
+### Project Structure
+```
+netbox_scion/
+├── __init__.py              # Plugin configuration
+├── models.py                # Data models
+├── forms.py                 # Web forms
+├── views.py                 # Web views
+├── urls.py                  # URL routing
+├── api/                     # REST API
+├── templates/               # HTML templates
+├── migrations/              # Database migrations
+└── static/                  # CSS/JS assets
 ```
 
-### Create an ISD-AS
+### Local Development
 ```bash
-curl -X POST http://netbox.example.com/api/plugins/scion/isd-ases/ 
-  -H "Authorization: Token YOUR_TOKEN" 
-  -H "Content-Type: application/json" 
-  -d '{
-    "isd_as": "1-ff00:0:110",
-    "organization": 1,
-    "cores": ["core1.example.com", "core2.example.com"],
-    "description": "Sample ISD-AS"
-  }'
-```
-
-### Create a Link Assignment
-```bash
-curl -X POST http://netbox.example.com/api/plugins/scion/link-assignments/ 
-  -H "Authorization: Token YOUR_TOKEN" 
-  -H "Content-Type: application/json" 
-  -d '{
-    "isd_as_id": 1,
-    "interface_id": 1,
-    "customer_id": "CUST001",
-    "customer_name": "Customer Corp",
-    "zendesk_ticket": "12345"
-  }'
-```
-
-## Development
-
-### Setting up for Development
-
-1. Clone the repository:
-```bash
-git clone https://github.com/aciupac/netbox-scion.git
-cd netbox-scion
-```
-
-2. Install in development mode:
-```bash
+# Install in development mode
 pip install -e .
+
+# Run migrations
+python manage.py migrate
+
+# Create wheel package
+python setup.py bdist_wheel
 ```
 
-3. Run tests:
-```bash
-python manage.py test netbox_scion
-```
+## 🐛 Support
 
-## Requirements
+For issues, please check:
+1. Plugin installation: `docker exec netbox /opt/netbox/venv/bin/pip list | grep netbox-scion`
+2. Configuration: Plugin in `PLUGINS` list and `PLUGINS_REQUIREMENTS`
+3. Migrations: Auto-handled by custom entrypoint script
+4. Restart NetBox container if needed
 
-- NetBox 3.5+
-- Python 3.8+
-- Django 4.0+
+## 📝 License
 
-## License
-
-This project is licensed under the Apache License 2.0.
-
-## Support
-
-For issues and feature requests, please use the GitHub issue tracker.
+Apache License 2.0

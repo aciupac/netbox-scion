@@ -1,7 +1,7 @@
 from django.db import models
 from django.urls import reverse
 from django.core.validators import RegexValidator
-from netbox.models import ChangeLoggedModel
+from netbox.models import NetBoxModel
 
 try:
     from django.contrib.postgres.fields import ArrayField
@@ -10,7 +10,7 @@ except ImportError:
     POSTGRES_AVAILABLE = False
 
 
-class Organization(ChangeLoggedModel):
+class Organization(NetBoxModel):
     """
     An organization that operates ISD-ASes.
     """
@@ -36,15 +36,20 @@ class Organization(ChangeLoggedModel):
     def __str__(self):
         return self.short_name
 
+    @property
+    def display(self):
+        return self.short_name
+
     def get_absolute_url(self):
         return reverse('plugins:netbox_scion:organization', args=[self.pk])
 
 
-class ISDAS(ChangeLoggedModel):
+class ISDAS(NetBoxModel):
     """
     An ISD-AS (Isolation Domain - Autonomous System) in the SCION network.
     """
-    ISD_AS_REGEX = r'^\d+-[0-9a-fA-F]+:[0-9a-fA-F]+:[0-9a-fA-F]+$'
+    # Updated regex to support both formats: 1-ff00:0:110 and 1-1
+    ISD_AS_REGEX = r'^\d+-([0-9a-fA-F]+:[0-9a-fA-F]+:[0-9a-fA-F]+|\d+)$'
     
     isd_as = models.CharField(
         max_length=32,
@@ -52,11 +57,11 @@ class ISDAS(ChangeLoggedModel):
         validators=[
             RegexValidator(
                 regex=ISD_AS_REGEX,
-                message="ISD-AS must be in format '{isd}-{as}' (e.g., '1-ff00:0:110')",
+                message="ISD-AS must be in format '{isd}-{as}' (e.g., '1-ff00:0:110' or '1-1')",
                 code='invalid_isd_as'
             )
         ],
-        help_text="ISD-AS identifier in format '{isd}-{as}' (e.g., '1-ff00:0:110')"
+        help_text="ISD-AS identifier in format '{isd}-{as}' (e.g., '1-ff00:0:110' or '1-1')"
     )
     description = models.TextField(
         blank=True,
@@ -69,20 +74,12 @@ class ISDAS(ChangeLoggedModel):
         help_text="Organization that operates this ISD-AS"
     )
     
-    # Use ArrayField for PostgreSQL, JSONField for other databases
-    if POSTGRES_AVAILABLE:
-        cores = ArrayField(
-            models.CharField(max_length=100),
-            blank=True,
-            default=list,
-            help_text="List of core nodes for this ISD-AS"
-        )
-    else:
-        cores = models.JSONField(
-            default=list,
-            blank=True,
-            help_text="List of core nodes for this ISD-AS"
-        )
+    # Use JSONField for consistency with NetBox
+    cores = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of core nodes for this ISD-AS"
+    )
 
     class Meta:
         verbose_name = "ISD-AS"
@@ -90,6 +87,10 @@ class ISDAS(ChangeLoggedModel):
         ordering = ['isd_as']
 
     def __str__(self):
+        return self.isd_as
+
+    @property
+    def display(self):
         return self.isd_as
 
     def get_absolute_url(self):
@@ -103,7 +104,7 @@ class ISDAS(ChangeLoggedModel):
         return str(self.cores)
 
 
-class SCIONLinkAssignment(ChangeLoggedModel):
+class SCIONLinkAssignment(NetBoxModel):
     """
     Assignment of a SCION link interface to a customer.
     """
@@ -112,6 +113,10 @@ class SCIONLinkAssignment(ChangeLoggedModel):
         on_delete=models.CASCADE,
         related_name='link_assignments',
         help_text="ISD-AS that owns this interface"
+    )
+    core = models.CharField(
+        max_length=255,
+        help_text="Core node for this assignment"
     )
     interface_id = models.PositiveIntegerField(
         help_text="Interface ID (unique per ISD-AS)"
@@ -148,6 +153,10 @@ class SCIONLinkAssignment(ChangeLoggedModel):
         ]
 
     def __str__(self):
+        return f"{self.isd_as} - Interface {self.interface_id}"
+
+    @property
+    def display(self):
         return f"{self.isd_as} - Interface {self.interface_id}"
 
     def get_absolute_url(self):

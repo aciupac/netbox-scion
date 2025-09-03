@@ -1,4 +1,4 @@
-{% extends 'base/object.html' %}
+{% extends 'generic/object_list.html' %}
 {% load render_table from django_tables2 %}
 
 {% block content %}
@@ -45,7 +45,7 @@
                     <tbody>
                         {% for isdas in object.isd_ases.all %}
                         <tr>
-                            <td><a href="{{ isdas.get_absolute_url }}">{{ isdas.isd_as }}</a></td>
+                            <td><a href="{% url 'plugins:netbox_scion:isdas' isdas.pk %}">{{ isdas.isd_as }}</a></td>
                             <td>{{ isdas.description|default:"-" }}</td>
                             <td>{{ isdas.cores_display|default:"-" }}</td>
                         </tr>

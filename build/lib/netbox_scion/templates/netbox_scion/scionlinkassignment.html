@@ -1,4 +1,4 @@
-{% extends 'base/object.html' %}
+{% extends 'generic/object_list.html' %}
 
 {% block content %}
 <div class="row mb-3">
@@ -9,7 +9,7 @@
                 <table class="table table-hover attr-table">
                     <tr>
                         <th scope="row">ISD-AS</th>
-                        <td><a href="{{ object.isd_as.get_absolute_url }}">{{ object.isd_as.isd_as }}</a></td>
+                        <td><a href="{% url 'plugins:netbox_scion:isdas' object.isd_as.pk %}">{{ object.isd_as.isd_as }}</a></td>
                     </tr>
                     <tr>
                         <th scope="row">Interface ID</th>
@@ -38,7 +38,7 @@
                 <table class="table table-hover attr-table">
                     <tr>
                         <th scope="row">Organization</th>
-                        <td><a href="{{ object.isd_as.organization.get_absolute_url }}">{{ object.isd_as.organization.short_name }}</a></td>
+                        <td><a href="{% url 'plugins:netbox_scion:organization' object.isd_as.organization.pk %}">{{ object.isd_as.organization.short_name }}</a></td>
                     </tr>
                     <tr>
                         <th scope="row">Full Name</th>
