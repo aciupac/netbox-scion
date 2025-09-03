@@ -113,7 +113,7 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
 
     class Meta:
         model = SCIONLinkAssignment
-        fields = ('isd_as', 'core', 'interface_id', 'customer_name', 'customer_id', 'zendesk_ticket')
+        fields = ('isd_as', 'core', 'interface_id', 'relationship', 'customer_name', 'customer_id', 'zendesk_ticket')
         labels = {
             'isd_as': 'ISD-AS',
             'interface_id': 'Interface ID',

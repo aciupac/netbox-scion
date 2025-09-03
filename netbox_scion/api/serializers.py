@@ -56,6 +56,6 @@ class SCIONLinkAssignmentSerializer(NetBoxModelSerializer):
         model = SCIONLinkAssignment
         fields = (
             'id', 'display', 'isd_as', 'isd_as_display', 'core', 'interface_id',
-            'customer_id', 'customer_name', 'zendesk_ticket', 'zendesk_url',
+            'relationship', 'customer_id', 'customer_name', 'zendesk_ticket', 'zendesk_url',
             'created', 'last_updated'
         )

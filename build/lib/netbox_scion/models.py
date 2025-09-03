@@ -108,6 +108,18 @@ class SCIONLinkAssignment(NetBoxModel):
     """
     Assignment of a SCION link interface to a customer.
     """
+    
+    # Relationship choices
+    RELATIONSHIP_PARENT = 'PARENT'
+    RELATIONSHIP_CHILD = 'CHILD'
+    RELATIONSHIP_CORE = 'CORE'
+    
+    RELATIONSHIP_CHOICES = [
+        (RELATIONSHIP_PARENT, 'PARENT'),
+        (RELATIONSHIP_CHILD, 'CHILD'),
+        (RELATIONSHIP_CORE, 'CORE'),
+    ]
+    
     isd_as = models.ForeignKey(
         ISDAS,
         on_delete=models.CASCADE,
@@ -123,6 +135,12 @@ class SCIONLinkAssignment(NetBoxModel):
     interface_id = models.PositiveIntegerField(
         verbose_name="Interface ID",
         help_text="Interface ID (unique per ISD-AS)"
+    )
+    relationship = models.CharField(
+        max_length=20,
+        choices=RELATIONSHIP_CHOICES,
+        verbose_name="Relationship",
+        help_text="Relationship type of this SCION link"
     )
     customer_id = models.CharField(
         max_length=100,
