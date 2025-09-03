@@ -104,11 +104,11 @@ class ISDAForm(NetBoxModelForm):
 
 
 class SCIONLinkAssignmentForm(NetBoxModelForm):
-    core = forms.ChoiceField(
+    core = forms.CharField(
         required=True,
         help_text="Select the core for this assignment",
         label="CORE",
-        choices=[]
+        widget=forms.Select(choices=[])
     )
 
     class Meta:
@@ -126,13 +126,19 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
         # Make customer_id optional and move it after customer_name via fields order
         self.fields['customer_id'].required = False
         
-        # If we have an instance (editing), populate core choices from that ISD-AS
+        # Set up the core field widget with initial choices
         if self.instance and self.instance.pk and self.instance.isd_as:
             cores = self.instance.isd_as.cores or []
-            self.fields['core'].choices = [(core, core) for core in cores]
+            choices = [(core, core) for core in cores]
+            if choices:
+                choices.insert(0, ('', '--- Select Core ---'))
+            else:
+                choices = [('', 'No cores available')]
         else:
             # For new instances, start with empty choices
-            self.fields['core'].choices = [('', '--- Select ISD-AS first ---')]
+            choices = [('', '--- Select ISD-AS first ---')]
+        
+        self.fields['core'].widget.choices = choices
 
     def clean_zendesk_ticket(self):
         ticket = self.cleaned_data.get('zendesk_ticket')

@@ -112,13 +112,16 @@ class SCIONLinkAssignment(NetBoxModel):
         ISDAS,
         on_delete=models.CASCADE,
         related_name='link_assignments',
+        verbose_name="ISD-AS",
         help_text="ISD-AS that owns this interface"
     )
     core = models.CharField(
         max_length=255,
+        verbose_name="Core",
         help_text="Core node for this assignment"
     )
     interface_id = models.PositiveIntegerField(
+        verbose_name="Interface ID",
         help_text="Interface ID (unique per ISD-AS)"
     )
     customer_id = models.CharField(
