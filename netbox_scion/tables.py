@@ -62,6 +62,9 @@ class SCIONLinkAssignmentTable(NetBoxTable):
         verbose_name='CORE'
     )
     interface_id = tables.Column(verbose_name='Interface ID')
+    relationship = ChoiceFieldColumn(
+        verbose_name='Relationship'
+    )
     customer_id = tables.Column()
     customer_name = tables.Column()
     zendesk_ticket = tables.Column(
@@ -70,8 +73,8 @@ class SCIONLinkAssignmentTable(NetBoxTable):
 
     class Meta(NetBoxTable.Meta):
         model = SCIONLinkAssignment
-        fields = ('pk', 'id', 'isd_as', 'core', 'interface_id', 'customer_id', 'customer_name', 'zendesk_ticket')
-        default_columns = ('isd_as', 'core', 'interface_id', 'customer_id', 'customer_name', 'zendesk_ticket')
+        fields = ('pk', 'id', 'isd_as', 'core', 'interface_id', 'relationship', 'customer_id', 'customer_name', 'zendesk_ticket')
+        default_columns = ('isd_as', 'core', 'interface_id', 'relationship', 'customer_id', 'customer_name', 'zendesk_ticket')
 
     def render_zendesk_ticket(self, value, record):
         """Render Zendesk ticket as a clickable link"""

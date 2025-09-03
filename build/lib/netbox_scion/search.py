@@ -27,5 +27,6 @@ class SCIONLinkAssignmentIndex(SearchIndex):
     fields = (
         ('customer_id', 100),
         ('customer_name', 200),
+        ('relationship', 250),
         ('zendesk_ticket', 300),
     )

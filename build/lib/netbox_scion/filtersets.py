@@ -25,7 +25,11 @@ class SCIONLinkAssignmentFilterSet(FilterSet):
         queryset=ISDAS.objects.all(),
         label='ISD-AS',
     )
+    relationship = django_filters.MultipleChoiceFilter(
+        choices=SCIONLinkAssignment.RELATIONSHIP_CHOICES,
+        label='Relationship',
+    )
 
     class Meta:
         model = SCIONLinkAssignment
-        fields = ['id', 'isd_as', 'interface_id', 'customer_id', 'customer_name', 'zendesk_ticket']
+        fields = ['id', 'isd_as', 'interface_id', 'relationship', 'customer_id', 'customer_name', 'zendesk_ticket']
