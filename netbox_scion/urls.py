@@ -1,6 +1,8 @@
 from django.urls import path
 from . import views
 
+app_name = 'netbox_scion'
+
 urlpatterns = (
     # Plugin home
     path('', views.PluginHomeView.as_view(), name='home'),

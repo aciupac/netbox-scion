@@ -31,7 +31,6 @@ netbox_scion/migrations/0003_fix_cores_field.py
 netbox_scion/migrations/0004_add_core_field.py
 netbox_scion/migrations/__init__.py
 netbox_scion/static/netbox_scion/netbox_scion.css
-netbox_scion/static/netbox_scion/js/core-dropdown.js
 netbox_scion/templates/netbox_scion/isdas.csv
 netbox_scion/templates/netbox_scion/isdas.html
 netbox_scion/templates/netbox_scion/isdas_detail.html
