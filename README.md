@@ -2,60 +2,82 @@
 
 A comprehensive NetBox plugin for managing SCION (Scalability, Control, and Isolation On Next-generation networks) infrastructure.
 
-**📦 Available on PyPI:** `pip install netbox-scion`
+[![PyPI](https://img.shields.io/pypi/v/netbox-scion)](https://pypi.org/project/netbox-scion/)
+[![Python Version](https://img.shields.io/pypi/pyversions/netbox-scion)](https://pypi.org/project/netbox-scion/)
+[![License](https://img.shields.io/github/license/aciupac/netbox-scion)](https://github.com/aciupac/netbox-scion/blob/main/LICENSE)
+
+## ✨ Features
+
+- **Organizations:** Manage SCION operators with metadata and descriptions
+- **ISD-ASes:** Track Isolation Domain and Autonomous System identifiers with core nodes
+- **Link Assignments:** Interface management with customer information and Zendesk integration
+- **REST API:** Full CRUD operations with filtering and pagination
+- **Export:** CSV and Excel export capabilities
+- **Web Interface:** Advanced filtering and search capabilities
+
+## 📦 Installation
+
+```bash
+pip install netbox-scion
+```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- NetBox deployment using netbox-docker
+- NetBox v4.0+ deployed using [netbox-docker](https://github.com/netbox-community/netbox-docker)
 - Docker and Docker Compose
 
 ### Installation
 
-**Method 1: PyPI Installation (Recommended)**
+The NetBox SCION plugin can be installed directly from PyPI without cloning this repository.
+
+#### Method 1: Environment Variables (Recommended)
+
+Add the plugin to your NetBox environment:
+
+**1. Update your `env/netbox.env` file:**
 ```bash
-# Copy deployment files
-cp -r deployment/* /path/to/your/netbox-docker/
-
-# Use the PyPI Dockerfile
-cp Dockerfile.netbox-pip /path/to/your/netbox-docker/
-
-# Update docker-compose.yml
-# dockerfile: Dockerfile.netbox-pip
-
+# Add to existing PLUGINS_REQUIREMENTS or create new line
+PLUGINS_REQUIREMENTS=netbox-scion==1.0.0
 ```
 
-**Method 2: Local Installation**
-```bash
-# Copy deployment files
-cp -r deployment/* /path/to/your/netbox-docker/
-```
-
-**Configuration:**
-
-1. **Update docker-compose.yml:**
-```yaml
-services:
-  netbox:
-    build:
-      context: .
-      dockerfile: Dockerfile.netbox-pip  # For PyPI installation
-```
-
-2. **Add to your NetBox plugins.py:**
+**2. Add to your `configuration/plugins.py` file:**
 ```python
 PLUGINS = [
     'netbox_scion',
-    # Your existing plugins...
+    # Your other existing plugins...
 ]
 ```
 
-3. **Add to your env/netbox.env:**
+**3. Restart NetBox:**
 ```bash
-PLUGINS_REQUIREMENTS=netbox-scion==1.0.0
+cd /path/to/your/netbox-docker
+docker-compose restart netbox netbox-worker
 ```
 
-4. **Deploy:**
+#### Method 2: Custom Docker Image
+
+For more control or if you need additional customizations:
+
+**1. Create a custom Dockerfile:**
+```dockerfile
+FROM netboxcommunity/netbox:v4.3-3.3.0
+
+# Install the plugin
+RUN /opt/netbox/venv/bin/pip install netbox-scion==1.0.0
+```
+
+**2. Update your `docker-compose.yml`:**
+```yaml
+services:
+  netbox: &netbox
+    build:
+      context: .
+      dockerfile: Dockerfile  # Your custom Dockerfile
+    # Remove the 'image:' line
+```
+
+**3. Add plugin configuration and rebuild:**
 ```bash
 cd /path/to/your/netbox-docker
 docker-compose down
@@ -63,75 +85,55 @@ docker-compose build --no-cache netbox
 docker-compose up -d
 ```
 
-**Method 2: Local Installation**#### Option 1: PyPI Package (Recommended)
-```bash
-# Install directly from PyPI
-pip install netbox-scion==1.0.0
+### Verification
 
-# Or use our Docker deployment with pip installation
-cp deployment/Dockerfile.netbox-pip /path/to/your/netbox-docker/
-cp deployment/plugin_requirements.txt /path/to/your/netbox-docker/
+Check that the plugin is installed correctly:
+
+```bash
+# Verify installation
+docker exec netbox /opt/netbox/venv/bin/pip show netbox-scion
+
+# Check plugin is loaded
+docker logs netbox | grep -i scion
 ```
 
-#### Option 2: Local Development
-**Method 2: Local Installation**
-```bash
-# Copy deployment files
-cp -r deployment/* /path/to/your/netbox-docker/
-```
-
-**Configuration:**
-
-4. Add to your `env/netbox.env`:
-```bash
-PLUGINS_REQUIREMENTS=netbox-scion==1.0.0
-```
-
-5. Deploy:
-```bash
-cd /path/to/your/netbox-docker
-docker-compose down
-docker-compose build --no-cache netbox
-docker-compose up -d
-```
-
-See [deployment/README.md](deployment/README.md) for detailed instructions.
-
-## 🏗️ Features
-
-### Organizations
-- Manage SCION organizations with short and full names
-- Description and metadata fields
-- REST API and export capabilities
-
-### ISD-ASes (Isolation Domain - Autonomous System)
-- ISD-AS identifier management with regex validation (`^\d+-[0-9a-f]{1,4}:[0-9a-f]{1,4}:[0-9a-f]{1,4}$`)
-- Organization association
-- Core nodes list support
-- Detailed descriptions
-
-### SCION Link Assignments
-- Interface assignment management (interface_id per ISD-AS must be unique)
-- Customer information (ID and name)
-- Zendesk ticket integration
-- Advanced filtering and search capabilities
-
-## 🎯 Navigation
-
-Plugin appears under the "Plugins" section in NetBox sidebar with:
-- Organizations
-- ISD-ASes
-- SCION Link Assignments
+The plugin will appear under "Plugins" in the NetBox sidebar with Organizations, ISD-ASes, and SCION Link Assignments.
 
 ## 🔧 API Endpoints
 
-- Organizations: `/api/plugins/scion/organizations/`
-- ISD-ASes: `/api/plugins/scion/isd-ases/`
-- Link Assignments: `/api/plugins/scion/link-assignments/`
+All endpoints support full CRUD operations with filtering, pagination, and export:
 
-All endpoints support full CRUD operations with filtering, pagination, and export.
+- **Organizations:** `/api/plugins/scion/organizations/`
+- **ISD-ASes:** `/api/plugins/scion/isd-ases/`
+- **Link Assignments:** `/api/plugins/scion/link-assignments/`
+
+## 🎯 Navigation
+
+The plugin adds a "Plugins" section to the NetBox sidebar with:
+- Organizations
+- ISD-ASes  
+- SCION Link Assignments
 
 ## 📁 Development
+
+### For Plugin Users
+Most users only need to install via pip (see Installation above). No need to clone this repository.
+
+### For Developers
+
+If you want to contribute or customize the plugin:
+
+```bash
+# Clone the repository
+git clone https://github.com/aciupac/netbox-scion.git
+cd netbox-scion
+
+# Install in development mode
+pip install -e .
+
+# Or use the deployment files for testing
+cp -r deployment/* /path/to/your/netbox-docker/
+```
 
 ### Project Structure
 ```
@@ -159,13 +161,37 @@ python manage.py migrate
 python setup.py bdist_wheel
 ```
 
-## 🐛 Support
+## 🐛 Troubleshooting
 
-For issues, please check:
-1. Plugin installation: `docker exec netbox /opt/netbox/venv/bin/pip list | grep netbox-scion`
-2. Configuration: Plugin in `PLUGINS` list and `PLUGINS_REQUIREMENTS`
-3. Migrations: Auto-handled by custom entrypoint script
-4. Restart NetBox container if needed
+### Plugin Not Appearing
+1. **Check installation:**
+   ```bash
+   docker exec netbox /opt/netbox/venv/bin/pip show netbox-scion
+   ```
+
+2. **Verify configuration:**
+   - Plugin in `PLUGINS` list in `configuration/plugins.py`
+   - Plugin in `PLUGINS_REQUIREMENTS` in `env/netbox.env`
+
+3. **Check logs:**
+   ```bash
+   docker logs netbox | grep -i error
+   docker logs netbox | grep -i scion
+   ```
+
+4. **Restart services:**
+   ```bash
+   docker-compose restart netbox netbox-worker
+   ```
+
+### Database Issues
+- Migrations run automatically with netbox-docker
+- For manual migration: `docker exec netbox python manage.py migrate`
+
+### Getting Help
+- 🐛 **Bug reports:** [GitHub Issues](https://github.com/aciupac/netbox-scion/issues)
+- 💬 **Questions:** [GitHub Discussions](https://github.com/aciupac/netbox-scion/discussions)
+- 📚 **Documentation:** [deployment/README.md](deployment/README.md)
 
 ## 📝 License
 
