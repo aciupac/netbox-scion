@@ -9,37 +9,42 @@ except ImportError:
     POSTGRES_AVAILABLE = False
 
 
-class MultipleStringWidget(forms.Widget):
+class TagListWidget(forms.TextInput):
     """
-    Custom widget for handling multiple strings as a textarea
+    Widget for entering comma-separated tags that converts to/from list
     """
     def __init__(self, attrs=None):
-        super().__init__(attrs)
-        if 'class' not in (attrs or {}):
-            self.attrs = {'class': 'form-control'}
+        default_attrs = {
+            'class': 'form-control',
+            'placeholder': 'Enter cores separated by commas (e.g., core1.example.com, core2.example.com)'
+        }
+        if attrs:
+            default_attrs.update(attrs)
+        super().__init__(default_attrs)
 
     def format_value(self, value):
         if value is None:
             return ''
         if isinstance(value, list):
-            return '\n'.join(value)
+            return ', '.join(value)
         return value
 
     def value_from_datadict(self, data, files, name):
         value = data.get(name, '')
         if value:
-            return [line.strip() for line in value.split('\n') if line.strip()]
+            # Split by comma and clean up whitespace
+            return [item.strip() for item in value.split(',') if item.strip()]
         return []
 
 
-class MultipleStringField(forms.Field):
+class TagListField(forms.Field):
     """
-    Custom field for handling multiple strings
+    Field for handling comma-separated tags
     """
-    widget = MultipleStringWidget
+    widget = TagListWidget
 
     def __init__(self, **kwargs):
-        kwargs.setdefault('widget', MultipleStringWidget(attrs={'rows': 4}))
+        kwargs.setdefault('widget', TagListWidget())
         super().__init__(**kwargs)
 
     def to_python(self, value):
@@ -48,13 +53,13 @@ class MultipleStringField(forms.Field):
         if isinstance(value, list):
             return value
         if isinstance(value, str):
-            return [line.strip() for line in value.split('\n') if line.strip()]
+            return [item.strip() for item in value.split(',') if item.strip()]
         return []
 
     def validate(self, value):
         super().validate(value)
         if value and not isinstance(value, list):
-            raise forms.ValidationError('Invalid format for multiple strings')
+            raise forms.ValidationError('Invalid format for core list')
 
 
 class OrganizationForm(NetBoxModelForm):
@@ -67,47 +72,85 @@ class OrganizationForm(NetBoxModelForm):
 
 
 class ISDAForm(NetBoxModelForm):
-    if not POSTGRES_AVAILABLE:
-        cores = MultipleStringField(
-            required=False,
-            help_text="Enter one core per line",
-            label="Cores"
-        )
-
+    cores = TagListField(
+        required=False,
+        help_text="Enter core nodes separated by commas (e.g., core1.example.com, core2.example.com)",
+        label="Core Nodes"
+    )
+    
     class Meta:
         model = ISDAS
         fields = ('isd_as', 'description', 'organization', 'cores')
+        labels = {
+            'isd_as': 'ISD-AS',
+        }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
+            'organization': forms.Select(),
         }
-        if POSTGRES_AVAILABLE:
-            widgets['cores'] = forms.Textarea(attrs={
-                'rows': 4, 
-                'placeholder': 'Enter one core per line'
-            })
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if POSTGRES_AVAILABLE and self.instance and self.instance.pk:
-            # For PostgreSQL ArrayField, convert list to textarea format
-            if self.instance.cores:
-                self.initial['cores'] = '\n'.join(self.instance.cores)
+        # Convert list to comma-separated string for display
+        if self.instance and self.instance.pk and self.instance.cores:
+            self.initial['cores'] = ', '.join(self.instance.cores)
+        
+        # Manually set the organization choices to avoid API lookup
+        self.fields['organization'].queryset = Organization.objects.all()
 
     def clean_cores(self):
-        cores = self.cleaned_data.get('cores')
-        if POSTGRES_AVAILABLE and isinstance(cores, str):
-            # Convert textarea input to list for PostgreSQL
-            return [line.strip() for line in cores.split('\n') if line.strip()]
-        return cores or []
+        cores = self.cleaned_data.get('cores', [])
+        return cores if cores else []
 
 
 class SCIONLinkAssignmentForm(NetBoxModelForm):
+    core = forms.ChoiceField(
+        required=True,
+        help_text="Select the core for this assignment",
+        label="CORE",
+        choices=[]
+    )
+
     class Meta:
         model = SCIONLinkAssignment
-        fields = ('isd_as', 'interface_id', 'customer_id', 'customer_name', 'zendesk_ticket')
+        fields = ('isd_as', 'core', 'interface_id', 'customer_name', 'customer_id', 'zendesk_ticket')
+        labels = {
+            'isd_as': 'ISD-AS',
+            'interface_id': 'Interface ID',
+            'customer_id': 'Customer ID',
+            'zendesk_ticket': 'Zendesk Ticket ID',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Make customer_id optional and move it after customer_name via fields order
+        self.fields['customer_id'].required = False
+        
+        # If we have an instance (editing), populate core choices from that ISD-AS
+        if self.instance and self.instance.pk and self.instance.isd_as:
+            cores = self.instance.isd_as.cores or []
+            self.fields['core'].choices = [(core, core) for core in cores]
+        else:
+            # For new instances, start with empty choices
+            self.fields['core'].choices = [('', '--- Select ISD-AS first ---')]
 
     def clean_zendesk_ticket(self):
         ticket = self.cleaned_data.get('zendesk_ticket')
         if ticket and not ticket.isdigit():
             raise forms.ValidationError("Zendesk ticket must contain only numbers")
         return ticket
+
+    def clean_core(self):
+        core = self.cleaned_data.get('core')
+        isd_as = self.cleaned_data.get('isd_as')
+        
+        if core and isd_as:
+            # Validate that the core exists in the selected ISD-AS
+            available_cores = isd_as.cores or []
+            if core not in available_cores:
+                available_cores_str = ', '.join(available_cores) if available_cores else 'No cores available'
+                raise forms.ValidationError(
+                    f"Core '{core}' is not available for ISD-AS {isd_as}. "
+                    f"Available cores: {available_cores_str}"
+                )
+        return core

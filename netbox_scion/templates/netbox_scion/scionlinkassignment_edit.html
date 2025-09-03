@@ -1,0 +1,77 @@
+{% extends 'generic/object_edit.html' %}
+{% load helpers form_helpers %}
+
+{% block form %}
+    <div class="panel panel-default">
+        <div class="panel-heading"><strong>SCION Link Assignment</strong></div>
+        <div class="panel-body">
+            {% render_field form.isd_as %}
+            {% render_field form.core %}
+            {% render_field form.interface_id %}
+            {% render_field form.customer_name %}
+            {% render_field form.customer_id %}
+            {% render_field form.zendesk_ticket %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isdasSelect = document.getElementById('id_isd_as');
+    const coreSelect = document.getElementById('id_core');
+
+    if (isdasSelect && coreSelect) {
+        function updateCores() {
+            const isdasId = isdasSelect.value;
+            if (isdasId) {
+                // Show loading state
+                coreSelect.innerHTML = '<option value="">Loading cores...</option>';
+                coreSelect.disabled = true;
+
+                fetch('{% url "plugins:netbox_scion:isdas_cores_ajax" %}?isdas_id=' + isdasId)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear existing options
+                        coreSelect.innerHTML = '<option value="">--- Select Core ---</option>';
+
+                        // Add new options
+                        if (data.cores && data.cores.length > 0) {
+                            data.cores.forEach(core => {
+                                const option = document.createElement('option');
+                                option.value = core;
+                                option.textContent = core;
+                                coreSelect.appendChild(option);
+                            });
+                            coreSelect.disabled = false;
+                        } else {
+                            coreSelect.innerHTML = '<option value="">No cores available</option>';
+                            coreSelect.disabled = true;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading cores:', error);
+                        coreSelect.innerHTML = '<option value="">Error loading cores</option>';
+                        coreSelect.disabled = true;
+                    });
+            } else {
+                coreSelect.innerHTML = '<option value="">--- Select ISD-AS first ---</option>';
+                coreSelect.disabled = true;
+            }
+        }
+
+        // Update cores when ISD-AS selection changes
+        isdasSelect.addEventListener('change', updateCores);
+
+        // Load cores on initial page load if ISD-AS is already selected
+        if (isdasSelect.value) {
+            updateCores();
+        } else {
+            coreSelect.innerHTML = '<option value="">--- Select ISD-AS first ---</option>';
+            coreSelect.disabled = true;
+        }
+    }
+});
+</script>
+{% endblock %}

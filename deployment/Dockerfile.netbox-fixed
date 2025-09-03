@@ -1,0 +1,32 @@
+# Custom NetBox Dockerfile with SCION Plugin
+FROM netboxcommunity/netbox:v4.3-3.3.0
+
+# Switch to root to install packages
+USER root
+
+# Install wget and python3-pip
+RUN apt-get update && \
+    apt-get install -y wget python3-pip && \
+    rm -rf /var/lib/apt/lists/*
+
+# Copy plugin wheel file
+COPY plugins/netbox_scion-0.1.0-py3-none-any.whl /opt/netbox/plugins/
+
+# Install pip in the virtual environment and then install the plugin
+RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
+    /opt/netbox/venv/bin/python3 /tmp/get-pip.py && \
+    /opt/netbox/venv/bin/pip install /opt/netbox/plugins/netbox_scion-0.1.0-py3-none-any.whl && \
+    rm /tmp/get-pip.py
+
+# Switch back to netbox user
+USER 999
+
+# Copy custom entrypoint script
+COPY --chown=999:999 docker-entrypoint-custom.sh /opt/netbox/
+RUN chmod +x /opt/netbox/docker-entrypoint-custom.sh
+
+# Use custom entrypoint for auto-migration
+ENTRYPOINT ["/opt/netbox/docker-entrypoint-custom.sh"]
+CMD ["gunicorn", "--pid", "/tmp/netbox.pid", "--pythonpath", "/opt/netbox/netbox", "--config", "/etc/netbox/config/gunicorn.py", "netbox.wsgi"]
+
+# The rest of the NetBox startup process will handle migrations and static files

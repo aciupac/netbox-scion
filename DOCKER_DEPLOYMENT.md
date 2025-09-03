@@ -13,10 +13,14 @@ scp dist/netbox_scion-0.1.0-py3-none-any.whl your-server:/path/to/your/netbox/
 ### Step 2: Install the plugin in your NetBox container
 ```bash
 # Option A: If using docker-compose
-docker-compose exec netbox pip install /opt/netbox/netbox_scion-0.1.0-py3-none-any.whl
+docker-compose exec netbox /opt/netbox/venv/bin/pip install /opt/netbox/netbox_scion-0.1.0-py3-none-any.whl
 
 # Option B: If using docker run
-docker exec -it your-netbox-container pip install /path/to/netbox_scion-0.1.0-py3-none-any.whl
+docker exec -it your-netbox-container /opt/netbox/venv/bin/pip install /path/to/netbox_scion-0.1.0-py3-none-any.whl
+
+# Option C: If pip doesn't exist in venv, install it first
+docker exec your-netbox-container /opt/netbox/venv/bin/python -m ensurepip --upgrade
+docker exec your-netbox-container /opt/netbox/venv/bin/pip install /path/to/netbox_scion-0.1.0-py3-none-any.whl
 ```
 
 ### Step 3: Update NetBox configuration
@@ -30,7 +34,7 @@ PLUGINS = [
 ### Step 4: Run migrations and restart
 ```bash
 # Run migrations
-docker-compose exec netbox python manage.py migrate
+docker-compose exec netbox /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py migrate
 
 # Restart NetBox
 docker-compose restart netbox
