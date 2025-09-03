@@ -8,9 +8,9 @@ A comprehensive NetBox plugin for managing SCION (Scalability, Control, and Isol
 - Docker and Docker Compose
 - Existing NetBox deployment using netbox-docker
 
-### Method 1: Custom Docker Image (Recommended)
+### Method 1: Pip Package Installation (Recommended)
 
-This method builds a custom NetBox image with the plugin pre-installed and auto-migration enabled.
+This method installs the plugin directly from PyPI, making updates easier.
 
 #### Step 1: Copy Files
 ```bash
@@ -18,9 +18,9 @@ This method builds a custom NetBox image with the plugin pre-installed and auto-
 cp -r deployment/* /path/to/your/netbox-docker/
 
 # Or copy individual files:
-cp Dockerfile.netbox-fixed /path/to/your/netbox-docker/
+cp Dockerfile.netbox-pip /path/to/your/netbox-docker/  # For PyPI installation
 cp docker-entrypoint-custom.sh /path/to/your/netbox-docker/
-cp plugins/netbox_scion-0.1.0-py3-none-any.whl /path/to/your/netbox-docker/plugins/
+cp plugin_requirements.txt /path/to/your/netbox-docker/
 ```
 
 #### Step 2: Update Docker Compose
@@ -31,7 +31,7 @@ services:
   netbox: &netbox
     build:
       context: .
-      dockerfile: Dockerfile.netbox-fixed  # Add this line
+      dockerfile: Dockerfile.netbox-pip  # For PyPI installation
     # Remove the 'image:' line if present
     # ... rest of your existing configuration
 ```
@@ -48,9 +48,9 @@ PLUGINS = [
 
 Add to your `env/netbox.env`:
 ```bash
-PLUGINS_REQUIREMENTS=netbox_scion
+PLUGINS_REQUIREMENTS=netbox-scion==1.0.0
 # Or if you have existing plugins:
-# PLUGINS_REQUIREMENTS=existing_plugin1,existing_plugin2,netbox_scion
+# PLUGINS_REQUIREMENTS=existing_plugin1,existing_plugin2,netbox-scion==1.0.0
 ```
 
 #### Step 4: Deploy
@@ -75,8 +75,8 @@ docker-compose up -d
 To update the plugin to a newer version:
 
 ```bash
-# Copy new wheel file
-cp plugins/netbox_scion-0.1.0-py3-none-any.whl /path/to/your/netbox-docker/plugins/
+# Update the version in plugin_requirements.txt
+echo "netbox-scion==1.1.0" > plugin_requirements.txt
 
 # Rebuild and restart
 docker-compose down
@@ -87,16 +87,33 @@ docker-compose up -d
 docker exec netbox-container /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py showmigrations netbox_scion
 ```
 
-### Method 2: Manual Installation
+### Method 2: Local Wheel Installation
+
+If you prefer to use the local wheel file instead of PyPI:
+
+```bash
+# Copy files including local wheel
+cp Dockerfile.netbox-local /path/to/your/netbox-docker/
+cp plugins/netbox_scion-1.0.0-py3-none-any.whl /path/to/your/netbox-docker/plugins/
+
+# Update docker-compose.yml to use:
+# dockerfile: Dockerfile.netbox-local
+```
+
+### Method 3: Manual Installation
 
 If you prefer not to use a custom Docker image:
 
 ```bash
-# Copy wheel to your running NetBox container
-docker cp plugins/netbox_scion-0.1.0-py3-none-any.whl netbox-container:/tmp/
+# Copy wheel to your running NetBox container (if using local wheel)
+docker cp plugins/netbox_scion-1.0.0-py3-none-any.whl netbox-container:/tmp/
 
-# Install the plugin
-docker exec netbox-container /opt/netbox/venv/bin/pip install /tmp/netbox_scion-0.1.0-py3-none-any.whl
+# Install the plugin (choose one method):
+# Method A: From PyPI (recommended)
+docker exec netbox-container /opt/netbox/venv/bin/pip install netbox-scion==1.0.0
+
+# Method B: From local wheel
+docker exec netbox-container /opt/netbox/venv/bin/pip install /tmp/netbox_scion-1.0.0-py3-none-any.whl
 
 # Run migrations
 docker exec netbox-container /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py migrate
@@ -134,12 +151,15 @@ docker exec netbox-container /opt/netbox/venv/bin/pip list | grep netbox-scion
 
 ## 🔧 Files Included
 
-- `Dockerfile.netbox-fixed` - Custom NetBox Docker image with plugin
-- `docker-entrypoint-custom.sh` - Auto-migration entrypoint script
+## 📁 Deployment Files
+
+- `Dockerfile.netbox-fixed` - Custom NetBox Dockerfile with plugin installation
+- `docker-entrypoint-custom.sh` - Enhanced entrypoint with auto-migration
+- `plugin_requirements.txt` - Plugin requirements for pip installation
+- `plugins/netbox_scion-1.0.0-py3-none-any.whl` - Plugin wheel package (alternative to PyPI)
 - `docker-compose.yml` - Example Docker Compose configuration
-- `plugins/netbox_scion-0.1.0-py3-none-any.whl` - Plugin wheel package
-- `configuration.py.example` - NetBox plugins configuration snippet
-- `netbox.env.example` - Environment variable configuration
+- `configuration.py.example` - Example NetBox configuration
+- `netbox.env.example` - Example environment variables
 
 ## 🐛 Troubleshooting
 
@@ -211,7 +231,7 @@ curl -X POST http://your-netbox/api/plugins/scion/isd-ases/ \
 
 Apache License 2.0
 docker exec netbox /opt/netbox/venv/bin/python -m ensurepip --upgrade
-docker exec netbox /opt/netbox/venv/bin/pip install /tmp/netbox_scion-0.1.0-py3-none-any.whl
+docker exec netbox /opt/netbox/venv/bin/pip install netbox-scion==1.0.0
 
 # Add to configuration.py:
 # PLUGINS = ['netbox_scion']
@@ -274,7 +294,7 @@ docker exec netbox /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py show
 # Method 1: Direct Python installation
 docker exec netbox /opt/netbox/venv/bin/python -c "
 import subprocess, sys
-subprocess.run([sys.executable, '-m', 'pip', 'install', '/tmp/netbox_scion-0.1.0-py3-none-any.whl'], check=True)
+subprocess.run([sys.executable, '-m', 'pip', 'install', 'netbox-scion==1.0.0'], check=True)
 "
 
 # Method 2: Using setuptools directly

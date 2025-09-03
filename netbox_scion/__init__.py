@@ -1,13 +1,13 @@
 from netbox.plugins import PluginConfig
 
-__version__ = '0.2.0'
+__version__ = '1.0.0'
 
 class NetBoxScionConfig(PluginConfig):
     # REQUIRED plugin attributes
     name = 'netbox_scion'  # This MUST match your folder name and PLUGINS setting
     verbose_name = 'SCION'  # This appears as the menu section name
     description = 'NetBox plugin for managing SCION Links Assignment'
-    version = '0.2.0'
+    version = '1.0.0'
     author = 'Andrei Ciupac'
     author_email = 'andrei.ciupac@anapaya.net'
     
