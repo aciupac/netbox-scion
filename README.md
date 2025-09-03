@@ -2,6 +2,8 @@
 
 A comprehensive NetBox plugin for managing SCION (Scalability, Control, and Isolation On Next-generation networks) infrastructure.
 
+**📦 Available on PyPI:** `pip install netbox-scion`
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -9,21 +11,38 @@ A comprehensive NetBox plugin for managing SCION (Scalability, Control, and Isol
 - Docker and Docker Compose
 
 ### Installation
-1. Copy the deployment files to your netbox-docker directory:
+
+**Method 1: PyPI Installation (Recommended)**
 ```bash
+# Copy deployment files
+cp -r deployment/* /path/to/your/netbox-docker/
+
+# Use the PyPI Dockerfile
+cp Dockerfile.netbox-pip /path/to/your/netbox-docker/
+
+# Update docker-compose.yml
+# dockerfile: Dockerfile.netbox-pip
+
+```
+
+**Method 2: Local Installation**
+```bash
+# Copy deployment files
 cp -r deployment/* /path/to/your/netbox-docker/
 ```
 
-2. Update your `docker-compose.yml` to use the custom Dockerfile:
+**Configuration:**
+
+1. **Update docker-compose.yml:**
 ```yaml
 services:
   netbox:
     build:
       context: .
-      dockerfile: Dockerfile.netbox-fixed
+      dockerfile: Dockerfile.netbox-pip  # For PyPI installation
 ```
 
-3. Add to your NetBox `plugins.py` file:
+2. **Add to your NetBox plugins.py:**
 ```python
 PLUGINS = [
     'netbox_scion',
@@ -31,9 +50,41 @@ PLUGINS = [
 ]
 ```
 
+3. **Add to your env/netbox.env:**
+```bash
+PLUGINS_REQUIREMENTS=netbox-scion==1.0.0
+```
+
+4. **Deploy:**
+```bash
+cd /path/to/your/netbox-docker
+docker-compose down
+docker-compose build --no-cache netbox
+docker-compose up -d
+```
+
+**Method 2: Local Installation**#### Option 1: PyPI Package (Recommended)
+```bash
+# Install directly from PyPI
+pip install netbox-scion==1.0.0
+
+# Or use our Docker deployment with pip installation
+cp deployment/Dockerfile.netbox-pip /path/to/your/netbox-docker/
+cp deployment/plugin_requirements.txt /path/to/your/netbox-docker/
+```
+
+#### Option 2: Local Development
+**Method 2: Local Installation**
+```bash
+# Copy deployment files
+cp -r deployment/* /path/to/your/netbox-docker/
+```
+
+**Configuration:**
+
 4. Add to your `env/netbox.env`:
 ```bash
-PLUGINS_REQUIREMENTS=netbox_scion
+PLUGINS_REQUIREMENTS=netbox-scion==1.0.0
 ```
 
 5. Deploy:

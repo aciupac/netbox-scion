@@ -1,4 +1,4 @@
-# Custom NetBox Dockerfile with SCION Plugin
+# Custom NetBox Dockerfile with SCION Plugin (Local Wheel)
 FROM netboxcommunity/netbox:v4.3-3.3.0
 
 # Switch to root to install packages
@@ -9,13 +9,13 @@ RUN apt-get update && \
     apt-get install -y wget python3-pip && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy plugin requirements
-COPY plugin_requirements.txt /opt/netbox/
+# Copy plugin files
+COPY plugins/ /opt/netbox/plugins/
 
-# Install pip in the virtual environment and then install the plugin from PyPI
+# Install pip in the virtual environment and then install the plugin from local wheel
 RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
     /opt/netbox/venv/bin/python3 /tmp/get-pip.py && \
-    /opt/netbox/venv/bin/python3 -m pip install -r /opt/netbox/plugin_requirements.txt && \
+    /opt/netbox/venv/bin/python3 -m pip install /opt/netbox/plugins/netbox_scion-1.0.0-py3-none-any.whl && \
     rm /tmp/get-pip.py
 
 # Switch back to netbox user

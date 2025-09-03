@@ -8,9 +8,11 @@ This deployment package contains all files needed for production deployment:
 - **`Dockerfile.netbox-fixed`** - Custom NetBox Docker image with SCION plugin pre-installed
 - **`docker-entrypoint-custom.sh`** - Auto-migration script for seamless database setup
 - **`docker-compose.yml`** - Complete Docker Compose configuration example
+- **`plugin_requirements.txt`** - Pip requirements file for PyPI installation
 
 ### Plugin Files
-- **`plugins/netbox_scion-0.1.0-py3-none-any.whl`** - Production-ready plugin wheel package
+- **`plugins/netbox_scion-1.0.0-py3-none-any.whl`** - Local wheel package (alternative to PyPI)
+- **Available on PyPI:** `pip install netbox-scion==1.0.0`
 
 ### Configuration Examples
 - **`configuration.py.example`** - NetBox configuration snippet
