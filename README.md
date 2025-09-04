@@ -24,28 +24,29 @@ pip install netbox-scion
 ## 🚀 Quick Start
 
 ### Prerequisites
-- NetBox v4.0+ deployed using [netbox-docker](https://github.com/netbox-community/netbox-docker)
-- Docker and Docker Compose
+- NetBox v4.0+ (either Docker or system installation)
+- Python 3.8+ with pip
 
 ### Installation
 
-The NetBox SCION plugin can be installed directly from PyPI without cloning this repository.
+Choose the method that matches your NetBox deployment:
 
-#### Method 1: Environment Variables (Recommended)
+#### Option 1: NetBox Docker Deployment
 
-Add the plugin to your NetBox environment:
+If you're using [netbox-docker](https://github.com/netbox-community/netbox-docker):
 
-**1. Update your `env/netbox.env` file:**
+**1. Add plugin to requirements:**
 ```bash
-# Add to existing PLUGINS_REQUIREMENTS or create new line
+# Edit your env/netbox.env file
 PLUGINS_REQUIREMENTS=netbox-scion==1.0.0
 ```
 
-**2. Add to your `configuration/plugins.py` file:**
+**2. Configure the plugin:**
 ```python
+# Edit configuration/plugins.py
 PLUGINS = [
     'netbox_scion',
-    # Your other existing plugins...
+    # Your other plugins...
 ]
 ```
 
@@ -55,49 +56,60 @@ cd /path/to/your/netbox-docker
 docker-compose restart netbox netbox-worker
 ```
 
-#### Method 2: Custom Docker Image
+#### Option 2: System NetBox Installation
 
-For more control or if you need additional customizations:
+If NetBox is installed directly on your system:
 
-**1. Create a custom Dockerfile:**
-```dockerfile
-FROM netboxcommunity/netbox:v4.3-3.3.0
-
-# Install the plugin
-RUN /opt/netbox/venv/bin/pip install netbox-scion==1.0.0
-```
-
-**2. Update your `docker-compose.yml`:**
-```yaml
-services:
-  netbox: &netbox
-    build:
-      context: .
-      dockerfile: Dockerfile  # Your custom Dockerfile
-    # Remove the 'image:' line
-```
-
-**3. Add plugin configuration and rebuild:**
+**1. Install the plugin:**
 ```bash
-cd /path/to/your/netbox-docker
-docker-compose down
-docker-compose build --no-cache netbox
-docker-compose up -d
+# Install in your NetBox virtual environment
+source /opt/netbox/venv/bin/activate
+pip install netbox-scion==1.0.0
+```
+
+**2. Configure the plugin:**
+```python
+# Edit /opt/netbox/netbox/netbox/configuration.py
+PLUGINS = [
+    'netbox_scion',
+    # Your other plugins...
+]
+```
+
+**3. Run migrations and restart:**
+```bash
+# Run database migrations
+cd /opt/netbox/netbox
+python manage.py migrate
+
+# Restart NetBox services (systemd example)
+sudo systemctl restart netbox netbox-rq
 ```
 
 ### Verification
 
-Check that the plugin is installed correctly:
+After installation, verify the plugin is working:
 
-```bash
-# Verify installation
-docker exec netbox /opt/netbox/venv/bin/pip show netbox-scion
+1. **Check installation:**
+   ```bash
+   # For Docker:
+   docker exec netbox pip show netbox-scion
+   
+   # For system install:
+   /opt/netbox/venv/bin/pip show netbox-scion
+   ```
 
-# Check plugin is loaded
-docker logs netbox | grep -i scion
-```
+2. **Access the interface:**
+   - Log into NetBox web interface
+   - Look for "SCION" section in the sidebar
+   - You should see: Organizations, ISD-ASes, SCION Link Assignments
 
-The plugin will appear under "Plugins" in the NetBox sidebar with Organizations, ISD-ASes, and SCION Link Assignments.
+### Advanced Installation
+
+For custom Docker images, local wheel files, or complex deployments, see our [**Advanced Deployment Guide**](deployment/README.md) which covers:
+- Custom Docker images with local wheel files
+- Manual container installation
+- Troubleshooting and development setup
 
 ## 🔧 API Endpoints
 
@@ -109,7 +121,7 @@ All endpoints support full CRUD operations with filtering, pagination, and expor
 
 ## 🎯 Navigation
 
-The plugin adds a "Plugins" section to the NetBox sidebar with:
+The plugin adds a "SCION" section to the NetBox sidebar with:
 - Organizations
 - ISD-ASes  
 - SCION Link Assignments
@@ -117,23 +129,29 @@ The plugin adds a "Plugins" section to the NetBox sidebar with:
 ## 📁 Development
 
 ### For Plugin Users
-Most users only need to install via pip (see Installation above). No need to clone this repository.
+**You don't need to clone this repository!** Simply install via pip using the instructions above.
 
-### For Developers
+### For Contributors & Developers
 
-If you want to contribute or customize the plugin:
+Only clone this repository if you want to:
+- Contribute code changes
+- Customize the plugin
+- Use local development builds
+- Test unreleased features
 
 ```bash
-# Clone the repository
+# Clone and setup for development
 git clone https://github.com/aciupac/netbox-scion.git
 cd netbox-scion
 
 # Install in development mode
 pip install -e .
 
-# Or use the deployment files for testing
+# For advanced deployment scenarios
 cp -r deployment/* /path/to/your/netbox-docker/
 ```
+
+See [**deployment/README.md**](deployment/README.md) for advanced installation methods including custom Docker images and local wheel files.
 
 ### Project Structure
 ```
@@ -163,35 +181,19 @@ python setup.py bdist_wheel
 
 ## 🐛 Troubleshooting
 
-### Plugin Not Appearing
-1. **Check installation:**
-   ```bash
-   docker exec netbox /opt/netbox/venv/bin/pip show netbox-scion
-   ```
+### Quick Fixes
 
-2. **Verify configuration:**
-   - Plugin in `PLUGINS` list in `configuration/plugins.py`
-   - Plugin in `PLUGINS_REQUIREMENTS` in `env/netbox.env`
+**Plugin not appearing?**
+- Check installation: `pip show netbox-scion` (or `docker exec netbox pip show netbox-scion`)
+- Ensure `'netbox_scion'` is in your `PLUGINS` list
+- Restart NetBox services
 
-3. **Check logs:**
-   ```bash
-   docker logs netbox | grep -i error
-   docker logs netbox | grep -i scion
-   ```
-
-4. **Restart services:**
-   ```bash
-   docker-compose restart netbox netbox-worker
-   ```
-
-### Database Issues
-- Migrations run automatically with netbox-docker
-- For manual migration: `docker exec netbox python manage.py migrate`
+**For detailed troubleshooting, deployment issues, and advanced configuration, see our [**Advanced Deployment Guide**](deployment/README.md).**
 
 ### Getting Help
 - 🐛 **Bug reports:** [GitHub Issues](https://github.com/aciupac/netbox-scion/issues)
 - 💬 **Questions:** [GitHub Discussions](https://github.com/aciupac/netbox-scion/discussions)
-- 📚 **Documentation:** [deployment/README.md](deployment/README.md)
+- 📚 **Detailed docs:** [deployment/README.md](deployment/README.md)
 
 ## 📝 License
 
