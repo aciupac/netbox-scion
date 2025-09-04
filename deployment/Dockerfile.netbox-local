@@ -15,7 +15,7 @@ COPY plugins/ /opt/netbox/plugins/
 # Install pip in the virtual environment and then install the plugin from local wheel
 RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
     /opt/netbox/venv/bin/python3 /tmp/get-pip.py && \
-    /opt/netbox/venv/bin/python3 -m pip install /opt/netbox/plugins/netbox_scion-1.0.0-py3-none-any.whl && \
+    /opt/netbox/venv/bin/python3 -m pip install /opt/netbox/plugins/netbox_scion-1.1.0-py3-none-any.whl && \
     rm /tmp/get-pip.py
 
 # Switch back to netbox user

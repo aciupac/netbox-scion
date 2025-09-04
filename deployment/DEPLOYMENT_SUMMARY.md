@@ -1,4 +1,7 @@
-# NetBox SCION Plugin - Deployment Package
+# NetBox SCIO### Plugin Files
+- **`plugins/netbox_scion-1.1.0-py3-none-any.whl`** - Local wheel package (alternative to PyPI)
+- **Available on PyPI:** `pip install netbox-scion==1.1.0`*`plugins/netbox_scion-1.1.0-py3-none-any.whl`** - Local wheel package (alternative to PyPI)
+- **Available on PyPI:** `pip install netbox-scion==1.1.0`Plugin - Deployment Package
 
 ## ✅ Package Contents
 
