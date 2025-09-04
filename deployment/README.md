@@ -1,16 +1,18 @@
-# NetBox SCION Plugin - Deployment
+# NetBox SCION Plugin - Advanced Deployment Guide
 
-A comprehensive NetBox plugin for managing SCION (Scalability, Control, and Isolation On Next-generation networks) infrastructure.
+This guide covers advanced installation methods, custom Docker builds, and detailed troubleshooting for the NetBox SCION plugin.
 
-## 🚀 Quick Installation
+**For simple installation, see the main [README.md](../README.md) first.**
+
+## 🚀 Advanced Installation Methods
 
 ### Prerequisites
 - Docker and Docker Compose
-- Existing NetBox deployment using netbox-docker
+- Existing NetBox deployment using [netbox-docker](https://github.com/netbox-community/netbox-docker)
 
-### Method 1: Pip Package Installation (Recommended)
+### Method 1: Custom Docker Image with PyPI
 
-This method installs the plugin directly from PyPI, making updates easier.
+This method creates a custom Docker image with the plugin pre-installed from PyPI.
 
 #### Step 1: Copy Files
 ```bash
@@ -87,7 +89,7 @@ docker-compose up -d
 docker exec netbox-container /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py showmigrations netbox_scion
 ```
 
-### Method 2: Local Wheel Installation
+### Method 2: Custom Docker Image with Local Wheel
 
 If you prefer to use the local wheel file instead of PyPI:
 
@@ -100,7 +102,7 @@ cp plugins/netbox_scion-1.0.0-py3-none-any.whl /path/to/your/netbox-docker/plugi
 # dockerfile: Dockerfile.netbox-local
 ```
 
-### Method 3: Manual Installation
+### Method 3: Manual Installation in Running Container
 
 If you prefer not to use a custom Docker image:
 
@@ -161,40 +163,121 @@ docker exec netbox-container /opt/netbox/venv/bin/pip list | grep netbox-scion
 - `configuration.py.example` - Example NetBox configuration
 - `netbox.env.example` - Example environment variables
 
-## 🐛 Troubleshooting
+## 🐛 Detailed Troubleshooting
 
 ### Plugin Not Appearing
-1. Check plugin is installed: `docker exec netbox-container /opt/netbox/venv/bin/pip list | grep netbox-scion`
-2. Check configuration: Ensure `netbox_scion` is in `PLUGINS` list
-3. Check environment: Ensure `PLUGINS_REQUIREMENTS=netbox_scion` in netbox.env
-4. Restart NetBox: `docker-compose restart netbox`
 
-### Database Errors
-1. The custom entrypoint automatically handles migrations
-2. For manual setup: `docker exec netbox-container /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py migrate`
+**For Docker installations:**
+```bash
+# Check installation
+docker exec netbox pip show netbox-scion
 
-**Custom Field Data Error Fix:**
-If you encounter "null value in column 'custom_field_data'" errors:
-1. This has been fixed in the latest wheel package (includes migration 0002)
-2. The migration will automatically add the required custom_field_data columns
-3. Restart NetBox after installation to apply the migration
+# Check logs for errors
+docker logs netbox | grep -i error
+docker logs netbox | grep -i scion
 
-### Menu Issues
-- Plugin appears under "Plugins" > "SCION" section in NetBox sidebar
-- This is standard behavior for NetBox 4.3+ plugin system
-- Look for "Plugins" → "SCION" in the navigation menu
-- Individual menu items: Organizations, ISD-ASes, SCION Link Assignments
+# Verify plugin loading
+docker exec netbox python -c "import netbox_scion; print('Plugin loaded successfully')"
+
+# Restart services
+docker-compose restart netbox netbox-worker
+```
+
+**For system installations:**
+```bash
+# Check installation
+/opt/netbox/venv/bin/pip show netbox-scion
+
+# Check logs
+sudo journalctl -u netbox -f | grep -i scion
+
+# Restart services
+sudo systemctl restart netbox netbox-rq
+```
+
+### Common Configuration Issues
+
+1. **Plugin in configuration:** Ensure `'netbox_scion'` is in your `PLUGINS` list
+2. **Requirements (Docker only):** Check `PLUGINS_REQUIREMENTS=netbox-scion==1.0.0` in `env/netbox.env`
+3. **Migrations:** Run `python manage.py migrate` (automatic in Docker)
+4. **Permissions:** Ensure NetBox user has proper database permissions
+5. **Version mismatch:** Ensure NetBox version compatibility (v4.0+)
+
+### Database Migration Issues
+
+**Automatic migration (Docker):**
+The custom entrypoint script automatically handles migrations. If issues persist:
+
+```bash
+# Check migration status
+docker exec netbox python /opt/netbox/netbox/manage.py showmigrations netbox_scion
+
+# Run migrations manually
+docker exec netbox python /opt/netbox/netbox/manage.py migrate netbox_scion
+```
+
+**Manual migration (System install):**
+```bash
+cd /opt/netbox/netbox
+python manage.py migrate netbox_scion
+```
+
+### Navigation and Menu Issues
+
+**Plugin appears under "SCION" section** in NetBox sidebar, not under "Plugins":
+- Look for top-level "SCION" menu
+- Individual items: Organizations, ISD-ASes, SCION Link Assignments
+- If not visible, check browser cache and try hard refresh (Ctrl+F5)
 
 **Menu Collapsing Issue:**
-If the sidebar menu collapses when you lose focus, this is typically due to:
+If the sidebar menu collapses when you lose focus:
 1. Browser viewport size - NetBox auto-collapses on smaller screens
 2. NetBox theme settings - check User Preferences → UI Theme
 3. JavaScript conflicts - try refreshing the page or clearing cache
 
+### Advanced Debugging
+
+**Check Python import:**
+```bash
+# Docker
+docker exec netbox python -c "
+import netbox_scion
+print(f'Plugin version: {netbox_scion.__version__}')
+print(f'Plugin location: {netbox_scion.__file__}')
+"
+
+# System
+/opt/netbox/venv/bin/python -c "
+import netbox_scion
+print(f'Plugin version: {netbox_scion.__version__}')
+"
+```
+
+**Check NetBox configuration:**
+```bash
+# Docker
+docker exec netbox grep -n "PLUGINS" /etc/netbox/configuration.py
+
+# System
+grep -n "PLUGINS" /opt/netbox/netbox/netbox/configuration.py
+```
+
+**Legacy Installation Cleanup:**
+If upgrading from older versions:
+```bash
+# Remove old installations
+pip uninstall netbox-scion
+pip install netbox-scion==1.0.0
+
+# Clear Python cache
+find . -name "*.pyc" -delete
+find . -name "__pycache__" -type d -exec rm -rf {} +
+```
+
 ## 📊 Plugin Structure
 
 ```
-Plugins > SCION Menu:
+SCION (Top-level menu):
 ├── Organizations
 │   ├── List/Add/Edit/Delete
 │   └── Export to CSV/Excel
@@ -230,82 +313,7 @@ curl -X POST http://your-netbox/api/plugins/scion/isd-ases/ \
 ## 📝 License
 
 Apache License 2.0
-docker exec netbox /opt/netbox/venv/bin/python -m ensurepip --upgrade
-docker exec netbox /opt/netbox/venv/bin/pip install netbox-scion==1.0.0
 
-# Add to configuration.py:
-# PLUGINS = ['netbox_scion']
+---
 
-# Run migrations
-docker exec netbox /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py migrate
-
-# Restart NetBox
-docker restart netbox
-```
-
-## Requirements
-
-- NetBox 3.5+
-- Docker with NetBox container
-- PostgreSQL database (recommended, but works with other databases)
-
-## Configuration
-
-Add this to your NetBox `configuration.py`:
-
-```python
-PLUGINS = [
-    'netbox_scion',
-]
-```
-
-## Verification
-
-After installation:
-1. Check the main NetBox navigation for "SCION" menu
-2. Visit `/api/plugins/scion/` for API access
-3. Access Organizations, ISD-ASes, and Link Assignments
-
-## Troubleshooting
-
-### Pip not found in container
-```bash
-# Install pip in the virtual environment
-docker exec netbox /opt/netbox/venv/bin/python -m ensurepip --upgrade
-
-# Verify pip is working
-docker exec netbox /opt/netbox/venv/bin/pip --version
-```
-
-### Plugin not appearing after installation
-```bash
-# Check if plugin is installed
-docker exec netbox /opt/netbox/venv/bin/python -c "import netbox_scion; print('Plugin installed successfully')"
-
-# Check NetBox configuration
-docker exec netbox grep -n "PLUGINS" /etc/netbox/configuration.py
-
-# Verify migrations ran
-docker exec netbox /opt/netbox/venv/bin/python /opt/netbox/netbox/manage.py showmigrations netbox_scion
-```
-
-### Alternative installation methods
-```bash
-# Method 1: Direct Python installation
-docker exec netbox /opt/netbox/venv/bin/python -c "
-import subprocess, sys
-subprocess.run([sys.executable, '-m', 'pip', 'install', 'netbox-scion==1.0.0'], check=True)
-"
-
-# Method 2: Using setuptools directly
-docker exec netbox /opt/netbox/venv/bin/python -c "
-import subprocess, sys, os
-os.chdir('/tmp')
-subprocess.run([sys.executable, 'setup.py', 'install'], check=True)
-"
-```
-
-## Support
-
-- GitHub: https://github.com/aciupac/netbox-scion
-- Documentation: See DOCKER_DEPLOYMENT.md for detailed instructions
+**For simple installation instructions, see the main [README.md](../README.md).**
