@@ -296,7 +296,7 @@ SCION (Top-level menu):
 
 Create an organization:
 ```bash
-curl -X POST http://your-netbox/api/plugins/scion/organizations/ \
+curl -X POST https://your-netbox/api/plugins/scion/organizations/ \
   -H "Authorization: Token YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"short_name": "ACME", "full_name": "ACME Corporation"}'
@@ -304,7 +304,7 @@ curl -X POST http://your-netbox/api/plugins/scion/organizations/ \
 
 Create an ISD-AS:
 ```bash
-curl -X POST http://your-netbox/api/plugins/scion/isd-ases/ \
+curl -X POST https://your-netbox/api/plugins/scion/isd-ases/ \
   -H "Authorization: Token YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"isd_as": "1-ff00:0:110", "organization": 1, "cores": ["core1.example.com"]}'
