@@ -152,6 +152,7 @@ class SCIONLinkAssignment(NetBoxModel):
     )
     zendesk_ticket = models.CharField(
         max_length=16,
+        blank=True,
         validators=[
             RegexValidator(
                 regex=r'^\d+$',
@@ -159,7 +160,7 @@ class SCIONLinkAssignment(NetBoxModel):
                 code='invalid_ticket'
             )
         ],
-        help_text="Zendesk ticket number (numbers only)"
+        help_text="Zendesk ticket number (numbers only, optional)"
     )
 
     class Meta:
@@ -185,4 +186,6 @@ class SCIONLinkAssignment(NetBoxModel):
 
     def get_zendesk_url(self):
         """Return the full Zendesk URL for this ticket"""
-        return f"https://anapaya.zendesk.com/agent/tickets/{self.zendesk_ticket}"
+        if self.zendesk_ticket:
+            return f"https://anapaya.zendesk.com/agent/tickets/{self.zendesk_ticket}"
+        return None

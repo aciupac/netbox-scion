@@ -39,7 +39,13 @@
                     </tr>
                     <tr>
                         <th scope="row">Zendesk Ticket</th>
-                        <td><a href="{{ object.get_zendesk_url }}" target="_blank">{{ object.zendesk_ticket }}</a></td>
+                        <td>
+                            {% if object.zendesk_ticket %}
+                                <a href="{{ object.get_zendesk_url }}" target="_blank">{{ object.zendesk_ticket }}</a>
+                            {% else %}
+                                <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </td>
                     </tr>
                     {% if object.description %}
                     <tr>
