@@ -9,16 +9,16 @@ A comprehensive NetBox plugin for managing SCION (Scalability, Control, and Isol
 ## ✨ Features
 
 - **Organizations:** Manage SCION operators with metadata and descriptions
-- **ISD-ASes:** Track Isolation Domain and Autonomous System identifiers with core nodes
+- **ISD-ASes:** Track Isolation Domain and Autonomous System identifiers with appliances (CORE/EDGE)
 - **Link Assignments:** Interface management with customer information and Zendesk integration
 - **REST API:** Full CRUD operations with filtering and pagination
 - **Export:** CSV and Excel export capabilities
-- **Web Interface:** Advanced filtering and search capabilities
+- **Advanced Filtering:** Search, dropdown filters, and tag-based filtering on all list pages
 
 ## 📦 Installation
 
 ```bash
-pip install netbox-scion
+pip install netbox-scion==1.1.0
 ```
 
 ## 🚀 Quick Start
@@ -35,13 +35,22 @@ Choose the method that matches your NetBox deployment:
 
 If you're using [netbox-docker](https://github.com/netbox-community/netbox-docker):
 
-**1. Add plugin to requirements:**
+**1. Create plugin requirements file:**
 ```bash
-# Edit your env/netbox.env file
-PLUGINS_REQUIREMENTS=netbox-scion==1.0.0
+# Create/edit plugin_requirements.txt
+echo "netbox-scion==1.1.0" >> plugin_requirements.txt
 ```
 
-**2. Configure the plugin:**
+**2. Create custom Dockerfile:**
+```dockerfile
+# Create Dockerfile-Plugins
+FROM netboxcommunity/netbox:latest
+
+COPY ./plugin_requirements.txt /opt/netbox/
+RUN /usr/local/bin/uv pip install -r /opt/netbox/plugin_requirements.txt
+```
+
+**3. Configure the plugin:**
 ```python
 # Edit configuration/plugins.py
 PLUGINS = [
@@ -50,10 +59,23 @@ PLUGINS = [
 ]
 ```
 
-**3. Restart NetBox:**
+**4. Update docker-compose.override.yml:**
+```yaml
+services:
+  netbox:
+    build:
+      context: .
+      dockerfile: Dockerfile-Plugins
+  netbox-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile-Plugins
+```
+
+**5. Build and start:**
 ```bash
-cd /path/to/your/netbox-docker
-docker-compose restart netbox netbox-worker
+docker-compose build
+docker-compose up -d
 ```
 
 #### Option 2: System NetBox Installation
@@ -64,7 +86,7 @@ If NetBox is installed directly on your system:
 ```bash
 # Install in your NetBox virtual environment
 source /opt/netbox/venv/bin/activate
-pip install netbox-scion==1.0.0
+pip install netbox-scion==1.1.0
 ```
 
 **2. Configure the plugin:**

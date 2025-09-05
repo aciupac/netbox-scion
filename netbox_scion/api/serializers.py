@@ -25,6 +25,7 @@ class NestedISDASSerializer(WritableNestedSerializer):
         model = ISDAS
         fields = ('id', 'display')
 
+
 class ISDASSerializer(NetBoxModelSerializer):
     organization = serializers.PrimaryKeyRelatedField(
         queryset=Organization.objects.all()
@@ -35,7 +36,7 @@ class ISDASSerializer(NetBoxModelSerializer):
     class Meta:
         model = ISDAS
         fields = (
-            'id', 'display', 'isd_as', 'description', 'organization', 'organization_display',
+            'id', 'display', 'isd_as', 'appliance_type', 'description', 'organization', 'organization_display',
             'cores', 'link_assignments_count', 'created', 'last_updated'
         )
 
@@ -44,6 +45,7 @@ class NestedSCIONLinkAssignmentSerializer(WritableNestedSerializer):
     class Meta:
         model = SCIONLinkAssignment
         fields = ('id', 'display')
+
 
 class SCIONLinkAssignmentSerializer(NetBoxModelSerializer):
     isd_as = serializers.PrimaryKeyRelatedField(

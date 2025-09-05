@@ -51,6 +51,15 @@ class ISDAS(NetBoxModel):
     # Updated regex to support both formats: 1-ff00:0:110 and 1-1
     ISD_AS_REGEX = r'^\d+-([0-9a-fA-F]+:[0-9a-fA-F]+:[0-9a-fA-F]+|\d+)$'
     
+    # Appliance type choices
+    APPLIANCE_CORE = 'CORE'
+    APPLIANCE_EDGE = 'EDGE'
+    
+    APPLIANCE_CHOICES = [
+        (APPLIANCE_CORE, 'CORE'),
+        (APPLIANCE_EDGE, 'EDGE'),
+    ]
+    
     isd_as = models.CharField(
         max_length=32,
         unique=True,
@@ -62,6 +71,12 @@ class ISDAS(NetBoxModel):
             )
         ],
         help_text="ISD-AS identifier in format '{isd}-{as}' (e.g., '1-ff00:0:110' or '1-1')"
+    )
+    appliance_type = models.CharField(
+        max_length=20,
+        choices=APPLIANCE_CHOICES,
+        verbose_name="Appliance Type",
+        help_text="Type of appliance for this ISD-AS"
     )
     description = models.TextField(
         blank=True,

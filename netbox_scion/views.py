@@ -11,20 +11,42 @@ class PluginHomeView(generic.ObjectListView):
     queryset = models.SCIONLinkAssignment.objects.select_related('isd_as', 'isd_as__organization')
     table = tables.SCIONLinkAssignmentTable
     filterset = filtersets.SCIONLinkAssignmentFilterSet
+    filterset_form = forms.SCIONLinkAssignmentFilterForm
     template_name = 'generic/object_list.html'
 
 
 def get_isdas_cores(request):
-    """AJAX view to get cores for a specific ISD-AS"""
+    """AJAX view to get cores and appliance type for a specific ISD-AS"""
     isdas_id = request.GET.get('isdas_id')
+    
     if isdas_id:
         try:
             isdas = models.ISDAS.objects.get(pk=isdas_id)
             cores = isdas.cores or []
-            return JsonResponse({'cores': cores})
+            appliance_type = getattr(isdas, 'appliance_type', 'CORE')
+            
+            return JsonResponse({
+                'cores': cores,
+                'appliance_type': appliance_type
+            })
         except models.ISDAS.DoesNotExist:
-            pass
-    return JsonResponse({'cores': []})
+            return JsonResponse({
+                'error': 'ISD-AS not found',
+                'cores': [],
+                'appliance_type': None
+            })
+        except Exception as e:
+            return JsonResponse({
+                'error': str(e),
+                'cores': [],
+                'appliance_type': None
+            })
+    
+    return JsonResponse({
+        'error': 'No ISD-AS ID provided',
+        'cores': [],
+        'appliance_type': None
+    })
 
 
 class OrganizationView(generic.ObjectView):
@@ -36,6 +58,7 @@ class OrganizationListView(generic.ObjectListView):
     queryset = models.Organization.objects.prefetch_related('isd_ases')
     table = tables.OrganizationTable
     filterset = filtersets.OrganizationFilterSet
+    filterset_form = forms.OrganizationFilterForm
     template_name = 'netbox_scion/organization_list.html'
 
 
@@ -46,6 +69,11 @@ class OrganizationEditView(generic.ObjectEditView):
 
 class OrganizationDeleteView(generic.ObjectDeleteView):
     queryset = models.Organization.objects.all()
+
+
+class OrganizationBulkDeleteView(generic.BulkDeleteView):
+    queryset = models.Organization.objects.all()
+    table = tables.OrganizationTable
 
 
 class OrganizationChangeLogView(generic.ObjectChangeLogView):
@@ -61,6 +89,7 @@ class ISDAListView(generic.ObjectListView):
     queryset = models.ISDAS.objects.select_related('organization').prefetch_related('link_assignments')
     table = tables.ISDATable
     filterset = filtersets.ISDAFilterSet
+    filterset_form = forms.ISDAFilterForm
     template_name = 'netbox_scion/isdas_list.html'
 
 
@@ -71,6 +100,11 @@ class ISDAEditView(generic.ObjectEditView):
 
 class ISDADeleteView(generic.ObjectDeleteView):
     queryset = models.ISDAS.objects.all()
+
+
+class ISDABulkDeleteView(generic.BulkDeleteView):
+    queryset = models.ISDAS.objects.all()
+    table = tables.ISDATable
 
 
 class ISDAChangeLogView(generic.ObjectChangeLogView):
@@ -196,6 +230,7 @@ class SCIONLinkAssignmentListView(generic.ObjectListView):
     queryset = models.SCIONLinkAssignment.objects.select_related('isd_as', 'isd_as__organization')
     table = tables.SCIONLinkAssignmentTable
     filterset = filtersets.SCIONLinkAssignmentFilterSet
+    filterset_form = forms.SCIONLinkAssignmentFilterForm
     template_name = 'netbox_scion/scionlinkassignment_list.html'
 
 
@@ -207,6 +242,11 @@ class SCIONLinkAssignmentEditView(generic.ObjectEditView):
 
 class SCIONLinkAssignmentDeleteView(generic.ObjectDeleteView):
     queryset = models.SCIONLinkAssignment.objects.all()
+
+
+class SCIONLinkAssignmentBulkDeleteView(generic.BulkDeleteView):
+    queryset = models.SCIONLinkAssignment.objects.all()
+    table = tables.SCIONLinkAssignmentTable
 
 
 class SCIONLinkAssignmentChangeLogView(generic.ObjectChangeLogView):

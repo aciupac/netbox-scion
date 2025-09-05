@@ -28,6 +28,7 @@ class ISDATable(NetBoxTable):
     isd_as = tables.Column(
         linkify=True
     )
+    appliance_type = ChoiceFieldColumn()
     organization = tables.Column(
         linkify=True
     )
@@ -44,8 +45,8 @@ class ISDATable(NetBoxTable):
 
     class Meta(NetBoxTable.Meta):
         model = ISDAS
-        fields = ('pk', 'id', 'isd_as', 'organization', 'description', 'cores', 'link_assignments_count')
-        default_columns = ('isd_as', 'organization', 'description', 'cores', 'link_assignments_count')
+        fields = ('pk', 'id', 'isd_as', 'appliance_type', 'organization', 'description', 'cores', 'link_assignments_count')
+        default_columns = ('isd_as', 'appliance_type', 'organization', 'description', 'cores', 'link_assignments_count')
 
     def render_cores(self, record):
         return len(record.cores) if record.cores else 0
