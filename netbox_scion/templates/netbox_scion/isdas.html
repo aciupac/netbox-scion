@@ -14,7 +14,13 @@
                     </tr>
                     <tr>
                         <th scope="row">Organization</th>
-                        <td><a href="{% url 'plugins:netbox_scion:organization' object.organization.pk %}">{{ object.organization.short_name }}</a></td>
+                        <td>
+                            {% if object.organization %}
+                                <a href="{% url 'plugins:netbox_scion:organization' object.organization.pk %}">{{ object.organization.short_name }}</a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
                     </tr>
                     {% if object.description %}
                     <tr>

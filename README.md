@@ -18,7 +18,7 @@ A comprehensive NetBox plugin for managing SCION (Scalability, Control, and Isol
 ## 📦 Installation
 
 ```bash
-pip install netbox-scion==1.1.1
+pip install netbox-scion==1.1.2
 ```
 
 ## 🚀 Quick Start
@@ -38,7 +38,7 @@ If you're using [netbox-docker](https://github.com/netbox-community/netbox-docke
 **1. Create plugin requirements file:**
 ```bash
 # Create/edit plugin_requirements.txt
-echo "netbox-scion==1.1.1" >> plugin_requirements.txt
+echo "netbox-scion==1.1.2" >> plugin_requirements.txt
 ```
 
 **2. Create custom Dockerfile:**
@@ -86,7 +86,7 @@ If NetBox is installed directly on your system:
 ```bash
 # Install in your NetBox virtual environment
 source /opt/netbox/venv/bin/activate
-pip install netbox-scion==1.1.1
+pip install netbox-scion==1.1.2
 ```
 
 **2. Configure the plugin:**

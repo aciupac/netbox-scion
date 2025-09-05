@@ -2,11 +2,6 @@
 {% load helpers %}
 {% load buttons %}
 
-{% block breadcrumbs %}
-  {{ block.super }}
-  <li class="breadcrumb-item active">{{ object }}</li>
-{% endblock %}
-
 {% block content %}
 <div class="row">
     <div class="col col-md-6">
@@ -19,16 +14,22 @@
                         <td>{{ object.isd_as }}</td>
                     </tr>
                     <tr>
+                        <th scope="row">Organization</th>
+                        <td>
+                            {% if object.organization %}
+                                <a href="{% url 'plugins:netbox_scion:organization' object.organization.pk %}">{{ object.organization.short_name }}</a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
                         <th scope="row">Appliance Type</th>
                         <td>
                             <span class="badge badge-{% if object.appliance_type == 'CORE' %}primary{% else %}success{% endif %}">
                                 {{ object.get_appliance_type_display }}
                             </span>
                         </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Organization</th>
-                        <td><a href="{% url 'plugins:netbox_scion:organization' object.organization.pk %}">{{ object.organization }}</a></td>
                     </tr>
                     {% if object.description %}
                     <tr>
