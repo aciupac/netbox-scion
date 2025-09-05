@@ -1,11 +1,6 @@
 {% extends 'generic/object.html' %}
 {% load helpers %}
 
-{% block breadcrumbs %}
-  {{ block.super }}
-  <li class="breadcrumb-item active">{{ object }}</li>
-{% endblock %}
-
 {% block content %}
 <div class="row">
     <div class="col col-md-6">
@@ -67,7 +62,13 @@
                 <table class="table table-hover">
                     <tr>
                         <th scope="row">Organization</th>
-                        <td><a href="{% url 'plugins:netbox_scion:organization' object.isd_as.organization.pk %}">{{ object.isd_as.organization }}</a></td>
+                        <td>
+                            {% if object.isd_as.organization %}
+                                <a href="{% url 'plugins:netbox_scion:organization' object.isd_as.organization.pk %}">{{ object.isd_as.organization }}</a>
+                            {% else %}
+                                —
+                            {% endif %}
+                        </td>
                     </tr>
                     <tr>
                         <th scope="row">Full ISD-AS Path</th>

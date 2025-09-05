@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - 2025-09-05
+
+### Fixed
+- Fixed missing filter buttons on all list pages (Organizations, ISD-AS, SCION Links)
+- Resolved NoReverseMatch errors when organization field is null/empty
+- Fixed corrupted detail templates causing Django template syntax errors
+- Corrected ListView template references to use proper NetBox list templates
+- Added null value protection for all organization field references in templates
+- Made Interface ID column clickable in SCION Link Assignment table for better navigation
+
+### Changed
+- Improved table rendering with graceful handling of null organization fields
+- Enhanced navigation between ISD-AS and SCION Link Assignment detail pages
+- Updated package naming to be PEP 625 compliant (netbox_scion instead of netbox-scion)
+
 ## [1.1.1] - 2025-09-05
 
 ### Changed

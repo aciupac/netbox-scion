@@ -30,7 +30,8 @@ class ISDATable(NetBoxTable):
     )
     appliance_type = ChoiceFieldColumn()
     organization = tables.Column(
-        linkify=True
+        linkify=True,
+        empty_values=()
     )
     cores = tables.Column(
         verbose_name='Cores',
@@ -51,6 +52,12 @@ class ISDATable(NetBoxTable):
     def render_cores(self, record):
         return len(record.cores) if record.cores else 0
 
+    def render_organization(self, value, record):
+        """Render organization with proper null handling"""
+        if value and value.pk:
+            return format_html('<a href="{}">{}</a>', value.get_absolute_url(), value.short_name)
+        return '—'
+
     def render_link_assignments_count(self, record):
         return record.link_assignments.count()
 
@@ -62,7 +69,10 @@ class SCIONLinkAssignmentTable(NetBoxTable):
     core = tables.Column(
         verbose_name='CORE'
     )
-    interface_id = tables.Column(verbose_name='Interface ID')
+    interface_id = tables.Column(
+        verbose_name='Interface ID',
+        linkify=True
+    )
     relationship = ChoiceFieldColumn(
         verbose_name='Relationship'
     )

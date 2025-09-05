@@ -1,11 +1,12 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='netbox-scion',
-    version='1.1.1',
+    name='netbox_scion',
+    version='1.1.2',
     description='NetBox plugin for managing SCION Links Assignment',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
+    url='https://github.com/aciupac/netbox-scion',
     author='Andrei Ciupac',
     author_email='andrei.ciupac@anapaya.net',
     install_requires=[],

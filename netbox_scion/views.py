@@ -59,7 +59,6 @@ class OrganizationListView(generic.ObjectListView):
     table = tables.OrganizationTable
     filterset = filtersets.OrganizationFilterSet
     filterset_form = forms.OrganizationFilterForm
-    template_name = 'netbox_scion/organization_list.html'
 
 
 class OrganizationEditView(generic.ObjectEditView):
@@ -90,7 +89,6 @@ class ISDAListView(generic.ObjectListView):
     table = tables.ISDATable
     filterset = filtersets.ISDAFilterSet
     filterset_form = forms.ISDAFilterForm
-    template_name = 'netbox_scion/isdas_list.html'
 
 
 class ISDAEditView(generic.ObjectEditView):
@@ -231,7 +229,6 @@ class SCIONLinkAssignmentListView(generic.ObjectListView):
     table = tables.SCIONLinkAssignmentTable
     filterset = filtersets.SCIONLinkAssignmentFilterSet
     filterset_form = forms.SCIONLinkAssignmentFilterForm
-    template_name = 'netbox_scion/scionlinkassignment_list.html'
 
 
 class SCIONLinkAssignmentEditView(generic.ObjectEditView):
