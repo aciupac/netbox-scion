@@ -31,10 +31,14 @@ class ISDAFilterSet(NetBoxModelFilterSet):
         method='search',
         label='Search',
     )
+    appliance_type = django_filters.ChoiceFilter(
+        choices=ISDAS.APPLIANCE_CHOICES,
+        label='Appliance Type'
+    )
     
     class Meta:
         model = ISDAS
-        fields = ['id', 'isd_as', 'organization']
+        fields = ['id', 'isd_as', 'appliance_type', 'organization']
 
     def search(self, queryset, name, value):
         """Perform the filtered search."""

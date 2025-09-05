@@ -1,24 +1,15 @@
-# Custom NetBox Dockerfile with SCION Plugin
-FROM netboxcommunity/netbox:v4.3-3.3.0
+# Alternative Dockerfile using pip directly (if uv is not available)
+FROM netboxcommunity/netbox:latest
 
-# Switch to root to install packages
+# Switch to root to install pip
 USER root
-
-# Install wget and python3-pip
-RUN apt-get update && \
-    apt-get install -y wget python3-pip && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
 
 # Copy plugin requirements
 COPY plugin_requirements.txt /opt/netbox/
 
-# Install pip in the virtual environment and then install the plugin from PyPI
-RUN wget -O /tmp/get-pip.py https://bootstrap.pypa.io/get-pip.py && \
-    /opt/netbox/venv/bin/python3 /tmp/get-pip.py && \
-    /opt/netbox/venv/bin/python3 -m pip install -r /opt/netbox/plugin_requirements.txt && \
-    rm /tmp/get-pip.py
+# Install plugins using pip in the virtual environment
+RUN /opt/netbox/venv/bin/pip install -r /opt/netbox/plugin_requirements.txt
 
 # Switch back to netbox user
 USER 999
-
-# The rest of the NetBox startup process will handle migrations and static files

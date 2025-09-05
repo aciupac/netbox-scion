@@ -1,5 +1,6 @@
 from django import forms
-from netbox.forms import NetBoxModelForm
+from netbox.forms import NetBoxModelForm, NetBoxModelFilterSetForm
+from utilities.forms.fields import DynamicModelChoiceField, TagFilterField
 from .models import Organization, ISDAS, SCIONLinkAssignment
 
 
@@ -15,49 +16,57 @@ class OrganizationForm(NetBoxModelForm):
 class ISDAForm(NetBoxModelForm):
     cores = forms.CharField(
         required=False,
-        help_text="Core nodes are managed in the detail page",
-        label="Core Nodes",
+        help_text="Appliances are managed in the detail page",
+        label="Appliances",
         widget=forms.HiddenInput()
     )
     
     class Meta:
         model = ISDAS
-        fields = ('isd_as', 'description', 'organization', 'cores')
+        fields = ('isd_as', 'appliance_type', 'description', 'organization', 'cores')
         labels = {
             'isd_as': 'ISD-AS',
+            'appliance_type': 'Appliance Type',
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
             'organization': forms.Select(),
+            'appliance_type': forms.Select(),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Keep cores as hidden, they'll be managed through the detail page
         if self.instance and self.instance.pk and self.instance.cores:
-            self.initial['cores'] = ', '.join(self.instance.cores)
+            # Only show cores if they actually exist and are not empty
+            if isinstance(self.instance.cores, list) and self.instance.cores:
+                self.initial['cores'] = ', '.join(self.instance.cores)
+            else:
+                self.initial['cores'] = ''
+        else:
+            self.initial['cores'] = ''
         
         # Manually set the organization choices to avoid API lookup
         self.fields['organization'].queryset = Organization.objects.all()
 
     def clean_cores(self):
         cores_str = self.cleaned_data.get('cores', '')
-        if not cores_str:
+        if not cores_str or cores_str.strip() == '':
             return []
         # Split by comma and clean up whitespace
         cores = [core.strip() for core in cores_str.split(',') if core.strip()]
         return cores
 
 
-# New form for managing cores in the ISD-AS detail page
+# New form for managing appliances in the ISD-AS detail page
 class CoreManagementForm(forms.Form):
     core_name = forms.CharField(
         max_length=255,
         required=True,
-        help_text="Name of the core node",
-        label="Core Node Name",
+        help_text="Name of the appliance",
+        label="Appliance Name",
         widget=forms.TextInput(attrs={
-            'placeholder': 'e.g., core1.example.com'
+            'placeholder': 'e.g., s01.chgtg1.ana'
         })
     )
 
@@ -65,8 +74,8 @@ class CoreManagementForm(forms.Form):
 class SCIONLinkAssignmentForm(NetBoxModelForm):
     core = forms.ChoiceField(
         required=True,
-        help_text="Select the core for this assignment",
-        label="CORE",
+        help_text="Select the appliance for this assignment",
+        label="Appliance",
         choices=[]
     )
 
@@ -106,9 +115,9 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
             cores = isd_as.cores or []
             choices = [(core, core) for core in cores]
             if choices:
-                choices.insert(0, ('', '--- Select Core ---'))
+                choices.insert(0, ('', '--- Select Appliance ---'))
             else:
-                choices = [('', 'No cores available')]
+                choices = [('', 'No appliances available')]
         else:
             # For new instances or when no ISD-AS is selected
             choices = [('', '--- Select ISD-AS first ---')]
@@ -123,10 +132,11 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
                 cores = isd_as.cores or []
                 choices = [(core, core) for core in cores]
                 if choices:
-                    choices.insert(0, ('', '--- Select Core ---'))
+                    choices.insert(0, ('', '--- Select Appliance ---'))
                 else:
-                    choices = [('', 'No cores available')]
+                    choices = [('', 'No appliances available')]
                 self.fields['core'].choices = choices
+                    
             except (ISDAS.DoesNotExist, ValueError, TypeError):
                 pass
         
@@ -145,10 +155,50 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
         if cleaned_data is None:
             return cleaned_data
             
-        # No additional validation needed - let Django handle the basic field validation
+        # No relationship restrictions based on appliance type
+        # Both EDGE and CORE can have any relationship type
         return cleaned_data
     
     def clean_core(self):
         core = self.cleaned_data.get('core', '')
         # Just return the core - validation happens via choices
         return core
+
+
+# Filter Forms
+class OrganizationFilterForm(NetBoxModelFilterSetForm):
+    q = forms.CharField(required=False, label="Search")
+    tag = TagFilterField(Organization)
+
+    model = Organization
+
+
+class ISDAFilterForm(NetBoxModelFilterSetForm):
+    q = forms.CharField(required=False, label="Search")
+    organization = DynamicModelChoiceField(
+        queryset=Organization.objects.all(), 
+        required=False
+    )
+    appliance_type = forms.MultipleChoiceField(
+        choices=ISDAS.APPLIANCE_CHOICES,
+        required=False,
+    )
+    tag = TagFilterField(ISDAS)
+
+    model = ISDAS
+
+
+class SCIONLinkAssignmentFilterForm(NetBoxModelFilterSetForm):
+    q = forms.CharField(required=False, label="Search")
+    isd_as = DynamicModelChoiceField(
+        queryset=ISDAS.objects.all(),
+        required=False,
+        label='ISD-AS'
+    )
+    relationship = forms.MultipleChoiceField(
+        choices=SCIONLinkAssignment.RELATIONSHIP_CHOICES,
+        required=False,
+    )
+    tag = TagFilterField(SCIONLinkAssignment)
+
+    model = SCIONLinkAssignment

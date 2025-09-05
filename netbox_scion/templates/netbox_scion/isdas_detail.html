@@ -19,6 +19,14 @@
                         <td>{{ object.isd_as }}</td>
                     </tr>
                     <tr>
+                        <th scope="row">Appliance Type</th>
+                        <td>
+                            <span class="badge badge-{% if object.appliance_type == 'CORE' %}primary{% else %}success{% endif %}">
+                                {{ object.get_appliance_type_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
                         <th scope="row">Organization</th>
                         <td><a href="{% url 'plugins:netbox_scion:organization' object.organization.pk %}">{{ object.organization }}</a></td>
                     </tr>
@@ -32,13 +40,13 @@
             </div>
         </div>
         
-        <!-- Cores Management Section -->
+        <!-- Appliances Management Section -->
         <div class="card">
             <h5 class="card-header">
-                Core Nodes
+                Appliances
                 <div class="card-actions">
                     <a href="{% url 'plugins:netbox_scion:add_core' object.pk %}" class="btn btn-primary btn-sm">
-                        <i class="mdi mdi-plus-thick"></i> Add Core
+                        <i class="mdi mdi-plus-thick"></i> Add Appliance
                     </a>
                 </div>
             </h5>
@@ -47,7 +55,7 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Core Node</th>
+                            <th>Appliance</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -95,7 +103,7 @@
                 <table class="table table-hover">
                     <tr>
                         <th>Interface</th>
-                        <th>Core</th>
+                        <th>Appliance</th>
                         <th>Customer</th>
                         <th>Zendesk</th>
                     </tr>

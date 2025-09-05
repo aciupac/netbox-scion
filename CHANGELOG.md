@@ -5,27 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-## [1.1.0] - 2025-09-04
+## [1.1.0] - 2025-09-05
 
 ### Added
-- Dedicated CORE management section in ISD-AS detail pages for better visibility and control
-- Add, edit, and remove CORE operations with cascade deletion of associated SCION links
-- Improved CORE visibility with dedicated management interface
+- Appliance Type field for ISD-AS with CORE and EDGE options
+- Advanced filtering interface for all list pages (Organizations, ISD-ASes, SCION Link Assignments)
+- Filter forms with search, dropdown filters, and tag filtering support
+- Dedicated Appliances management section in ISD-AS detail pages
 
 ### Changed
-- Simplified CORE field input to use comma-separated text format for better compatibility
-- Reverted to basic filtering functionality
-- Maintained all existing model functionality and data compatibility
-- Moved CORE management from forms to dedicated section for improved user experience
+- Renamed "Core Nodes" to "Appliances" throughout the UI for consistency
+- Improved user experience with dedicated appliance management section
 
 ### Fixed
-- Enter key properly adds CORE tags instead of submitting the form
-- Filter sidebar now displays correctly on all list pages
-- Multiple COREs can be added without form interference
-- Form validation errors that prevented SCION link creation
-- Optional zendesk ticket field to allow creation without ticket reference
+- Filter sidebar now displays correctly on all list pages with proper NetBox integration
+- Appliance dropdown now properly loads when ISD-AS is selected
 
 ## [1.0.0] - 2025-09-03
 
