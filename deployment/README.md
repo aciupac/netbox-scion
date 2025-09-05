@@ -20,7 +20,7 @@ This is the recommended production approach using a custom Dockerfile.
 **1. Create plugin requirements file:**
 ```bash
 # Create plugin_requirements.txt in your netbox-docker directory
-echo "netbox-scion==1.1.0" > plugin_requirements.txt
+echo "netbox-scion==1.1.1> plugin_requirements.txt
 ```
 
 **2. Create Dockerfile-Plugins:**
@@ -68,7 +68,7 @@ For testing local changes or unreleased versions.
 **1. Copy your wheel file:**
 ```bash
 # Copy your built wheel to plugins/ directory
-cp netbox_scion-1.1.0-py3-none-any.whl plugins/
+cp netbox_scion-1.1.1y3-none-any.whl plugins/
 ```
 
 **2. Use local Dockerfile:**
@@ -156,7 +156,7 @@ docker-compose restart netbox netbox-worker
 - `docker-compose.yml` - Example Docker Compose setup
 
 ### Plugin Files:
-- `plugins/netbox_scion-1.1.0-py3-none-any.whl` - Current plugin wheel
+- `plugins/netbox_scion-1.1.1y3-none-any.whl` - Current plugin wheel
 
 ## 🐛 Troubleshooting
 
@@ -261,7 +261,7 @@ If upgrading from older versions:
 ```bash
 # Remove old installations
 pip uninstall netbox-scion
-pip install netbox-scion==1.1.0
+pip install netbox-scion==1.1.1
 
 # Clear Python cache
 find . -name "*.pyc" -delete
