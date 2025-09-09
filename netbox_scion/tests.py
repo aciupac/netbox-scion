@@ -33,7 +33,7 @@ class ISDATestCase(TestCase):
         self.isdas = ISDAS.objects.create(
             isd_as="1-ff00:0:110",
             organization=self.organization,
-            cores=["core1.example.com", "core2.example.com"],
+            appliances=["core1.example.com", "core2.example.com"],
             description="Test ISD-AS"
         )
 
@@ -41,10 +41,10 @@ class ISDATestCase(TestCase):
         """Test ISDAS string representation"""
         self.assertEqual(str(self.isdas), "1-ff00:0:110")
 
-    def test_isdas_cores_display(self):
-        """Test cores display property"""
+    def test_isdas_appliances_display(self):
+        """Test appliances display property"""
         expected = "core1.example.com, core2.example.com"
-        self.assertEqual(self.isdas.cores_display, expected)
+        self.assertEqual(self.isdas.appliances_display, expected)
 
     def test_invalid_isd_as_format(self):
         """Test that invalid ISD-AS format raises validation error"""
@@ -67,10 +67,13 @@ class SCIONLinkAssignmentTestCase(TestCase):
             organization=self.organization
         )
         self.assignment = SCIONLinkAssignment.objects.create(
-            isd_as=self.isdas,
+            isd_as=isd_as,
+            core="v1",
             interface_id=1,
-            customer_id="CUST001",
-            customer_name="Customer Corp",
+            relationship=SCIONLinkAssignment.RELATIONSHIP_CHILD,
+            customer_id="customer1",
+            peer_name="Customer Corp",
+            peer="customer-corp-peer",
             zendesk_ticket="12345"
         )
 
@@ -91,7 +94,8 @@ class SCIONLinkAssignmentTestCase(TestCase):
                 isd_as=self.isdas,
                 interface_id=1,  # Duplicate
                 customer_id="CUST002",
-                customer_name="Another Customer",
+                peer_name="Another Customer",
+                peer="another-customer-peer",
                 zendesk_ticket="54321"
             )
 
@@ -102,7 +106,8 @@ class SCIONLinkAssignmentTestCase(TestCase):
                 isd_as=self.isdas,
                 interface_id=2,
                 customer_id="CUST002",
-                customer_name="Customer Corp",
+                peer_name="Customer Corp",
+                peer="customer-corp-peer",
                 zendesk_ticket="not-a-number"
             )
             assignment.full_clean()

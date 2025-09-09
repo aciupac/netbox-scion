@@ -25,8 +25,12 @@
                         <td>{{ object.get_relationship_display }}</td>
                     </tr>
                     <tr>
-                        <th scope="row">Customer Name</th>
-                        <td>{{ object.customer_name }}</td>
+                        <th scope="row">Peer Name</th>
+                        <td>{{ object.peer_name }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Peer</th>
+                        <td>{{ object.peer }}</td>
                     </tr>
                     <tr>
                         <th scope="row">Customer ID</th>
@@ -74,12 +78,12 @@
                         <th scope="row">Full ISD-AS Path</th>
                         <td>{{ object.isd_as.isd_as }}</td>
                     </tr>
-                    {% if object.isd_as.cores %}
+                    {% if object.isd_as.appliances %}
                     <tr>
-                        <th scope="row">Available Core Nodes</th>
+                        <th scope="row">Available Appliances</th>
                         <td>
-                            {% for core in object.isd_as.cores %}
-                                <span class="badge badge-secondary{% if core == object.core %} badge-primary{% endif %}">{{ core }}</span>
+                            {% for appliance in object.isd_as.appliances %}
+                                <span class="badge badge-secondary{% if appliance == object.core %} badge-primary{% endif %}">{{ appliance }}</span>
                             {% endfor %}
                         </td>
                     </tr>

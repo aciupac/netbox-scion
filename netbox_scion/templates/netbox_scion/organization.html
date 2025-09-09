@@ -39,7 +39,7 @@
                         <tr>
                             <th>ISD-AS</th>
                             <th>Description</th>
-                            <th>Cores</th>
+                            <th>Appliances</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -47,7 +47,7 @@
                         <tr>
                             <td><a href="{% url 'plugins:netbox_scion:isdas' isdas.pk %}">{{ isdas.isd_as }}</a></td>
                             <td>{{ isdas.description|default:"-" }}</td>
-                            <td>{{ isdas.cores_display|default:"-" }}</td>
+                            <td>{{ isdas.appliances_display|default:"-" }}</td>
                         </tr>
                         {% endfor %}
                     </tbody>

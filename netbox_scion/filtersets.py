@@ -31,14 +31,10 @@ class ISDAFilterSet(NetBoxModelFilterSet):
         method='search',
         label='Search',
     )
-    appliance_type = django_filters.ChoiceFilter(
-        choices=ISDAS.APPLIANCE_CHOICES,
-        label='Appliance Type'
-    )
     
     class Meta:
         model = ISDAS
-        fields = ['id', 'isd_as', 'appliance_type', 'organization']
+        fields = ['id', 'isd_as', 'organization']
 
     def search(self, queryset, name, value):
         """Perform the filtered search."""
@@ -61,7 +57,7 @@ class SCIONLinkAssignmentFilterSet(NetBoxModelFilterSet):
     
     class Meta:
         model = SCIONLinkAssignment
-        fields = ['id', 'isd_as', 'core', 'relationship', 'customer_name', 'customer_id']
+        fields = ['id', 'isd_as', 'core', 'relationship', 'peer_name', 'peer', 'customer_id']
 
     def search(self, queryset, name, value):
         """Perform the filtered search."""
@@ -70,7 +66,8 @@ class SCIONLinkAssignmentFilterSet(NetBoxModelFilterSet):
         qs_filter = (
                 Q(isd_as__isd_as__icontains=value)
                 | Q(core__icontains=value)
-                | Q(customer_name__icontains=value)
+                | Q(peer_name__icontains=value)
+                | Q(peer__icontains=value)
                 | Q(customer_id__icontains=value)
                 | Q(zendesk_ticket__icontains=value)
         )

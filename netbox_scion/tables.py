@@ -28,13 +28,12 @@ class ISDATable(NetBoxTable):
     isd_as = tables.Column(
         linkify=True
     )
-    appliance_type = ChoiceFieldColumn()
     organization = tables.Column(
         linkify=True,
         empty_values=()
     )
-    cores = tables.Column(
-        verbose_name='Cores',
+    appliances = tables.Column(
+        verbose_name='Appliances',
         orderable=False,
         empty_values=()
     )
@@ -46,11 +45,11 @@ class ISDATable(NetBoxTable):
 
     class Meta(NetBoxTable.Meta):
         model = ISDAS
-        fields = ('pk', 'id', 'isd_as', 'appliance_type', 'organization', 'description', 'cores', 'link_assignments_count')
-        default_columns = ('isd_as', 'appliance_type', 'organization', 'description', 'cores', 'link_assignments_count')
+        fields = ('pk', 'id', 'isd_as', 'organization', 'description', 'appliances', 'link_assignments_count')
+        default_columns = ('isd_as', 'organization', 'description', 'appliances', 'link_assignments_count')
 
-    def render_cores(self, record):
-        return len(record.cores) if record.cores else 0
+    def render_appliances(self, record):
+        return len(record.appliances) if record.appliances else 0
 
     def render_organization(self, value, record):
         """Render organization with proper null handling"""
@@ -67,7 +66,7 @@ class SCIONLinkAssignmentTable(NetBoxTable):
         linkify=True
     )
     core = tables.Column(
-        verbose_name='CORE'
+        verbose_name='Appliance'
     )
     interface_id = tables.Column(
         verbose_name='Interface ID',
@@ -77,15 +76,16 @@ class SCIONLinkAssignmentTable(NetBoxTable):
         verbose_name='Relationship'
     )
     customer_id = tables.Column()
-    customer_name = tables.Column()
+    peer_name = tables.Column()
+    peer = tables.Column()
     zendesk_ticket = tables.Column(
         verbose_name='Zendesk Ticket'
     )
 
     class Meta(NetBoxTable.Meta):
         model = SCIONLinkAssignment
-        fields = ('pk', 'id', 'isd_as', 'core', 'interface_id', 'relationship', 'customer_id', 'customer_name', 'zendesk_ticket')
-        default_columns = ('isd_as', 'core', 'interface_id', 'relationship', 'customer_id', 'customer_name', 'zendesk_ticket')
+        fields = ('pk', 'id', 'isd_as', 'core', 'interface_id', 'relationship', 'customer_id', 'peer_name', 'peer', 'zendesk_ticket')
+        default_columns = ('isd_as', 'core', 'interface_id', 'relationship', 'customer_id', 'peer_name', 'peer', 'zendesk_ticket')
 
     def render_zendesk_ticket(self, value, record):
         """Render Zendesk ticket as a clickable link"""

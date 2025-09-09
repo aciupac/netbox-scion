@@ -9,7 +9,8 @@
             {% render_field form.core %}
             {% render_field form.interface_id %}
             {% render_field form.relationship %}
-            {% render_field form.customer_name %}
+            {% render_field form.peer_name %}
+            {% render_field form.peer %}
             {% render_field form.customer_id %}
             {% render_field form.zendesk_ticket %}
         </div>
@@ -62,22 +63,22 @@ document.addEventListener('DOMContentLoaded', function() {
             coreField.disabled = true;
         }
         
-        const ajaxUrl = '{% url "plugins:netbox_scion:isdas_cores_ajax" %}?isdas_id=' + isdasId;
+        const ajaxUrl = '{% url "plugins:netbox_scion:isdas_appliances_ajax" %}?isdas_id=' + isdasId;
         
         fetch(ajaxUrl)
             .then(response => response.json())
             .then(data => {
-                const cores = data.cores || [];
+                const appliances = data.appliances || [];
                 
                 if (coreTomSelect) {
                     try {
                         coreTomSelect.clear();
                         coreTomSelect.clearOptions();
                         
-                        if (cores.length > 0) {
+                        if (appliances.length > 0) {
                             coreTomSelect.addOption({value: '', text: '--- Select Appliance ---'});
-                            cores.forEach(core => {
-                                coreTomSelect.addOption({value: core, text: core});
+                            appliances.forEach(appliance => {
+                                coreTomSelect.addOption({value: appliance, text: appliance});
                             });
                             coreTomSelect.enable();
                         } else {
@@ -88,10 +89,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         console.error('Error with Tom Select:', error);
                         // Fallback to standard select
                         coreField.innerHTML = '';
-                        if (cores.length > 0) {
+                        if (appliances.length > 0) {
                             coreField.innerHTML += '<option value="">--- Select Appliance ---</option>';
-                            cores.forEach(core => {
-                                coreField.innerHTML += `<option value="${core}">${core}</option>`;
+                            appliances.forEach(appliance => {
+                                coreField.innerHTML += `<option value="${appliance}">${appliance}</option>`;
                             });
                             coreField.disabled = false;
                         } else {
@@ -100,11 +101,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     }
                 } else {
+                    // Standard select element
                     coreField.innerHTML = '';
-                    if (cores.length > 0) {
+                    if (appliances.length > 0) {
                         coreField.innerHTML += '<option value="">--- Select Appliance ---</option>';
-                        cores.forEach(core => {
-                            coreField.innerHTML += `<option value="${core}">${core}</option>`;
+                        appliances.forEach(appliance => {
+                            coreField.innerHTML += `<option value="${appliance}">${appliance}</option>`;
                         });
                         coreField.disabled = false;
                     } else {

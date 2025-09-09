@@ -14,7 +14,7 @@ class OrganizationForm(NetBoxModelForm):
 
 
 class ISDAForm(NetBoxModelForm):
-    cores = forms.CharField(
+    appliances = forms.CharField(
         required=False,
         help_text="Appliances are managed in the detail page",
         label="Appliances",
@@ -23,44 +23,42 @@ class ISDAForm(NetBoxModelForm):
     
     class Meta:
         model = ISDAS
-        fields = ('isd_as', 'appliance_type', 'description', 'organization', 'cores')
+        fields = ('isd_as', 'description', 'organization', 'appliances')
         labels = {
             'isd_as': 'ISD-AS',
-            'appliance_type': 'Appliance Type',
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
             'organization': forms.Select(),
-            'appliance_type': forms.Select(),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Keep cores as hidden, they'll be managed through the detail page
-        if self.instance and self.instance.pk and self.instance.cores:
-            # Only show cores if they actually exist and are not empty
-            if isinstance(self.instance.cores, list) and self.instance.cores:
-                self.initial['cores'] = ', '.join(self.instance.cores)
+        # Keep appliances as hidden, they'll be managed through the detail page
+        if self.instance and self.instance.pk and self.instance.appliances:
+            # Only show appliances if they actually exist and are not empty
+            if isinstance(self.instance.appliances, list) and self.instance.appliances:
+                self.initial['appliances'] = ', '.join(self.instance.appliances)
             else:
-                self.initial['cores'] = ''
+                self.initial['appliances'] = ''
         else:
-            self.initial['cores'] = ''
+            self.initial['appliances'] = ''
         
         # Manually set the organization choices to avoid API lookup
         self.fields['organization'].queryset = Organization.objects.all()
 
-    def clean_cores(self):
-        cores_str = self.cleaned_data.get('cores', '')
-        if not cores_str or cores_str.strip() == '':
+    def clean_appliances(self):
+        appliances_str = self.cleaned_data.get('appliances', '')
+        if not appliances_str or appliances_str.strip() == '':
             return []
         # Split by comma and clean up whitespace
-        cores = [core.strip() for core in cores_str.split(',') if core.strip()]
-        return cores
+        appliances = [appliance.strip() for appliance in appliances_str.split(',') if appliance.strip()]
+        return appliances
 
 
 # New form for managing appliances in the ISD-AS detail page
-class CoreManagementForm(forms.Form):
-    core_name = forms.CharField(
+class ApplianceManagementForm(forms.Form):
+    appliance_name = forms.CharField(
         max_length=255,
         required=True,
         help_text="Name of the appliance",
@@ -81,10 +79,12 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
 
     class Meta:
         model = SCIONLinkAssignment
-        fields = ('isd_as', 'core', 'interface_id', 'relationship', 'customer_name', 'customer_id', 'zendesk_ticket')
+        fields = ('isd_as', 'core', 'interface_id', 'relationship', 'peer_name', 'peer', 'customer_id', 'zendesk_ticket')
         labels = {
             'isd_as': 'ISD-AS',
             'interface_id': 'Interface ID',
+            'peer_name': 'Peer Name',
+            'peer': 'Peer',
             'customer_id': 'Customer ID',
             'zendesk_ticket': 'Zendesk Ticket ID',
         }
@@ -110,10 +110,10 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
                 except (ISDAS.DoesNotExist, ValueError, TypeError):
                     pass
         
-        # Set up choices based on available cores
-        if isd_as and hasattr(isd_as, 'cores'):
-            cores = isd_as.cores or []
-            choices = [(core, core) for core in cores]
+        # Set up choices based on available appliances
+        if isd_as and hasattr(isd_as, 'appliances'):
+            appliances = isd_as.appliances or []
+            choices = [(appliance, appliance) for appliance in appliances]
             if choices:
                 choices.insert(0, ('', '--- Select Appliance ---'))
             else:
@@ -129,8 +129,8 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
         if self.data and 'isd_as' in self.data and self.data['isd_as']:
             try:
                 isd_as = ISDAS.objects.get(pk=self.data['isd_as'])
-                cores = isd_as.cores or []
-                choices = [(core, core) for core in cores]
+                appliances = isd_as.appliances or []
+                choices = [(appliance, appliance) for appliance in appliances]
                 if choices:
                     choices.insert(0, ('', '--- Select Appliance ---'))
                 else:
@@ -161,7 +161,7 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
     
     def clean_core(self):
         core = self.cleaned_data.get('core', '')
-        # Just return the core - validation happens via choices
+        # Just return the appliance - validation happens via choices
         return core
 
 
@@ -178,10 +178,6 @@ class ISDAFilterForm(NetBoxModelFilterSetForm):
     organization = DynamicModelChoiceField(
         queryset=Organization.objects.all(), 
         required=False
-    )
-    appliance_type = forms.MultipleChoiceField(
-        choices=ISDAS.APPLIANCE_CHOICES,
-        required=False,
     )
     tag = TagFilterField(ISDAS)
 
