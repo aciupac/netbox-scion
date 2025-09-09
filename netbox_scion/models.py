@@ -51,15 +51,6 @@ class ISDAS(NetBoxModel):
     # Updated regex to support both formats: 1-ff00:0:110 and 1-1
     ISD_AS_REGEX = r'^\d+-([0-9a-fA-F]+:[0-9a-fA-F]+:[0-9a-fA-F]+|\d+)$'
     
-    # Appliance type choices
-    APPLIANCE_CORE = 'CORE'
-    APPLIANCE_EDGE = 'EDGE'
-    
-    APPLIANCE_CHOICES = [
-        (APPLIANCE_CORE, 'CORE'),
-        (APPLIANCE_EDGE, 'EDGE'),
-    ]
-    
     isd_as = models.CharField(
         max_length=32,
         unique=True,
@@ -72,28 +63,22 @@ class ISDAS(NetBoxModel):
         ],
         help_text="ISD-AS identifier in format '{isd}-{as}' (e.g., '1-ff00:0:110' or '1-1')"
     )
-    appliance_type = models.CharField(
-        max_length=20,
-        choices=APPLIANCE_CHOICES,
-        verbose_name="Appliance Type",
-        help_text="Type of appliance for this ISD-AS"
-    )
     description = models.TextField(
         blank=True,
         help_text="Optional description"
     )
     organization = models.ForeignKey(
         Organization,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,  # Changed from PROTECT to CASCADE for auto-delete
         related_name='isd_ases',
         help_text="Organization that operates this ISD-AS"
     )
     
     # Use JSONField for consistency with NetBox
-    cores = models.JSONField(
+    appliances = models.JSONField(
         default=list,
         blank=True,
-        help_text="List of core nodes for this ISD-AS"
+        help_text="List of appliances for this ISD-AS"
     )
 
     class Meta:
@@ -112,11 +97,11 @@ class ISDAS(NetBoxModel):
         return reverse('plugins:netbox_scion:isdas', args=[self.pk])
 
     @property
-    def cores_display(self):
-        """Return cores as a comma-separated string for display"""
-        if isinstance(self.cores, list):
-            return ', '.join(self.cores)
-        return str(self.cores)
+    def appliances_display(self):
+        """Return appliances as a comma-separated string for display"""
+        if isinstance(self.appliances, list):
+            return ', '.join(self.appliances)
+        return str(self.appliances)
 
 
 class SCIONLinkAssignment(NetBoxModel):
@@ -144,8 +129,8 @@ class SCIONLinkAssignment(NetBoxModel):
     )
     core = models.CharField(
         max_length=255,
-        verbose_name="Core",
-        help_text="Core node for this assignment"
+        verbose_name="Appliance",
+        help_text="Appliance for this assignment"
     )
     interface_id = models.PositiveIntegerField(
         verbose_name="Interface ID",
@@ -161,9 +146,13 @@ class SCIONLinkAssignment(NetBoxModel):
         max_length=100,
         help_text="Customer identifier"
     )
-    customer_name = models.CharField(
+    peer_name = models.CharField(
         max_length=100,
-        help_text="Customer name"
+        help_text="Peer name"
+    )
+    peer = models.CharField(
+        max_length=255,
+        help_text="ISD-AS and Interface Number identifier in format '{isd}-{as}#{interface_number}' (e.g., '1-ff00:0:110#1' or '1-1#1')"
     )
     zendesk_ticket = models.CharField(
         max_length=16,
@@ -186,6 +175,10 @@ class SCIONLinkAssignment(NetBoxModel):
             models.UniqueConstraint(
                 fields=['isd_as', 'interface_id'],
                 name='unique_interface_per_isdas'
+            ),
+            models.UniqueConstraint(
+                fields=['isd_as', 'peer'],
+                name='unique_peer_per_isdas'
             )
         ]
 

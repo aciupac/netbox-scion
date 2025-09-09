@@ -20,7 +20,6 @@ class ISDAAdmin(admin.ModelAdmin):
 
 @admin.register(SCIONLinkAssignment)
 class SCIONLinkAssignmentAdmin(admin.ModelAdmin):
-    list_display = ('isd_as', 'interface_id', 'customer_id', 'customer_name', 'zendesk_ticket')
-    list_filter = ('isd_as', 'created', 'last_updated')
-    search_fields = ('customer_id', 'customer_name', 'zendesk_ticket', 'isd_as__isd_as')
-    ordering = ('isd_as', 'interface_id')
+    list_display = ('isd_as', 'interface_id', 'customer_id', 'peer_name', 'zendesk_ticket')
+    list_filter = ('isd_as', 'relationship')
+    search_fields = ('customer_id', 'peer_name', 'zendesk_ticket', 'isd_as__isd_as')

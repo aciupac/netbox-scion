@@ -7,7 +7,7 @@ urlpatterns = (
     # Plugin home
     path('', views.PluginHomeView.as_view(), name='home'),
     # AJAX URLs
-    path('ajax/isdas-cores/', views.get_isdas_cores, name='isdas_cores_ajax'),
+    path('ajax/isdas-appliances/', views.get_isdas_appliances, name='isdas_appliances_ajax'),
     
     # Organization URLs
     path('organizations/', views.OrganizationListView.as_view(), name='organization_list'),
@@ -26,10 +26,10 @@ urlpatterns = (
     path('isd-ases/<int:pk>/edit/', views.ISDAEditView.as_view(), name='isdas_edit'),
     path('isd-ases/<int:pk>/delete/', views.ISDADeleteView.as_view(), name='isdas_delete'),
     path('isd-ases/<int:pk>/changelog/', views.ISDAChangeLogView.as_view(), name='isdas_changelog'),
-    # Core management URLs
-    path('isd-ases/<int:pk>/add-core/', views.add_core_to_isdas, name='add_core'),
-    path('isd-ases/<int:pk>/edit-core/<str:core_name>/', views.edit_core_in_isdas, name='edit_core'),
-    path('isd-ases/<int:pk>/remove-core/<str:core_name>/', views.remove_core_from_isdas, name='remove_core'),
+    # Appliance management URLs
+    path('isd-ases/<int:pk>/add-appliance/', views.add_appliance_to_isdas, name='add_appliance'),
+    path('isd-ases/<int:pk>/edit-appliance/<str:appliance_name>/', views.edit_appliance_in_isdas, name='edit_appliance'),
+    path('isd-ases/<int:pk>/remove-appliance/<str:appliance_name>/', views.remove_appliance_from_isdas, name='remove_appliance'),
 
     # SCION Link Assignment URLs
     path('link-assignments/', views.SCIONLinkAssignmentListView.as_view(), name='scionlinkassignment_list'),

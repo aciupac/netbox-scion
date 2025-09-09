@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name='netbox_scion',
-    version='1.1.2',
+    version='1.2',
     description='NetBox plugin for managing SCION Links Assignment',
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',

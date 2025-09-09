@@ -36,8 +36,8 @@ class ISDASSerializer(NetBoxModelSerializer):
     class Meta:
         model = ISDAS
         fields = (
-            'id', 'display', 'isd_as', 'appliance_type', 'description', 'organization', 'organization_display',
-            'cores', 'link_assignments_count', 'created', 'last_updated'
+            'id', 'display', 'isd_as', 'description', 'organization', 'organization_display',
+            'appliances', 'link_assignments_count', 'created', 'last_updated'
         )
 
 
@@ -58,6 +58,6 @@ class SCIONLinkAssignmentSerializer(NetBoxModelSerializer):
         model = SCIONLinkAssignment
         fields = (
             'id', 'display', 'isd_as', 'isd_as_display', 'core', 'interface_id',
-            'relationship', 'customer_id', 'customer_name', 'zendesk_ticket', 'zendesk_url',
+            'relationship', 'customer_id', 'peer_name', 'peer', 'zendesk_ticket', 'zendesk_url',
             'created', 'last_updated'
         )

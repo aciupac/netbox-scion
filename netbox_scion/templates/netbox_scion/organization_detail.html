@@ -57,9 +57,9 @@
                     <tr>
                         <td><a href="{% url 'plugins:netbox_scion:isdas' isdas.pk %}">{{ isdas.isd_as }}</a></td>
                         <td>
-                            {% if isdas.cores %}
-                                {% for core in isdas.cores %}
-                                    <span class="badge badge-secondary">{{ core }}</span>
+                            {% if isdas.appliances %}
+                                {% for appliance in isdas.appliances %}
+                                    <span class="badge badge-secondary">{{ appliance }}</span>
                                 {% endfor %}
                             {% else %}
                                 <span class="text-muted">None</span>
