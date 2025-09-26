@@ -9,10 +9,13 @@
             {% render_field form.core %}
             {% render_field form.interface_id %}
             {% render_field form.relationship %}
+            {% render_field form.status %}
             {% render_field form.peer_name %}
             {% render_field form.peer %}
-            {% render_field form.customer_id %}
-            {% render_field form.zendesk_ticket %}
+            {% render_field form.local_underlay %}
+            {% render_field form.peer_underlay %}
+            {% render_field form.ticket %}
+            {% render_field form.comments %}
         </div>
     </div>
 {% endblock %}

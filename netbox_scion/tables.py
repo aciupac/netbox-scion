@@ -1,6 +1,6 @@
 import django_tables2 as tables
 from django.utils.html import format_html
-from netbox.tables import NetBoxTable, ChoiceFieldColumn
+from netbox.tables import NetBoxTable
 from .models import Organization, ISDAS, SCIONLinkAssignment
 
 
@@ -72,24 +72,63 @@ class SCIONLinkAssignmentTable(NetBoxTable):
         verbose_name='Interface ID',
         linkify=True
     )
-    relationship = ChoiceFieldColumn(
+    relationship = tables.Column(
         verbose_name='Relationship'
     )
-    customer_id = tables.Column()
+    status = tables.Column(
+        verbose_name='Status'
+    )
     peer_name = tables.Column()
     peer = tables.Column()
-    zendesk_ticket = tables.Column(
-        verbose_name='Zendesk Ticket'
+    ticket = tables.Column(
+        verbose_name='Ticket'
+    )
+    local_underlay = tables.Column(
+        verbose_name='Local Underlay'
+    )
+    peer_underlay = tables.Column(
+        verbose_name='Peer Underlay'
     )
 
     class Meta(NetBoxTable.Meta):
         model = SCIONLinkAssignment
-        fields = ('pk', 'id', 'isd_as', 'core', 'interface_id', 'relationship', 'customer_id', 'peer_name', 'peer', 'zendesk_ticket')
-        default_columns = ('isd_as', 'core', 'interface_id', 'relationship', 'customer_id', 'peer_name', 'peer', 'zendesk_ticket')
+        fields = ('pk', 'id', 'isd_as', 'core', 'interface_id', 'relationship', 'status', 'peer_name', 'peer', 'local_underlay', 'peer_underlay', 'ticket')
+        default_columns = ('isd_as', 'core', 'interface_id', 'relationship', 'status', 'peer_name', 'peer', 'local_underlay', 'peer_underlay', 'ticket')
 
-    def render_zendesk_ticket(self, value, record):
-        """Render Zendesk ticket as a clickable link"""
-        if value:
-            url = record.get_zendesk_url()
-            return format_html('<a href="{}" target="_blank">{}</a>', url, value)
+    def render_ticket(self, value, record):
+        if not value:
+            return ''
+        url = record.get_ticket_url()
+        if url:
+            return format_html('<a href="{}" target="_blank" rel="noopener noreferrer">{}</a>', url, value)
         return value
+
+    STATUS_COLORS = {
+        'ACTIVE': ('#28a745', '#fff'),
+        'RESERVED': ('#ffc107', '#000'),
+        'PLANNED': ('#6c757d', '#fff'),
+    }
+    REL_COLORS = {
+        'CORE': ('#4f46e5', '#fff'),
+        'CHILD': ('#14b8a6', '#fff'),
+        'PARENT': ('#3b82f6', '#fff'),
+    }
+
+    def _badge(self, text, bg, fg):
+        return format_html('<span class="badge" style="background-color:{};color:{};font-weight:500;">{}</span>', bg, fg, text)
+
+    def render_status(self, value):
+        if not value:
+            return ''
+        # Normalize to uppercase for consistent color lookup even if DB holds mixed-case values
+        key = value.upper()
+        bg, fg = self.STATUS_COLORS.get(key, ('#6c757d', '#fff'))
+        label = key.title()
+        return self._badge(label, bg, fg)
+
+    def render_relationship(self, value):
+        if not value:
+            return ''
+        bg, fg = self.REL_COLORS.get(value, ('#6c757d', '#fff'))
+        # value already uppercase; display as given
+        return self._badge(value.title() if value.isupper() else value, bg, fg)

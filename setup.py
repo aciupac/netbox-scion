@@ -1,15 +1,20 @@
 from setuptools import find_packages, setup
 
+with open('README.md', encoding='utf-8') as fh:
+    long_desc = fh.read()
+
 setup(
     name='netbox_scion',
-    version='1.2',
+    version='1.3.0',
     description='NetBox plugin for managing SCION Links Assignment',
-    long_description=open('README.md').read(),
+    long_description=long_desc,
     long_description_content_type='text/markdown',
     url='https://github.com/aciupac/netbox-scion',
     author='Andrei Ciupac',
     author_email='andrei.ciupac@anapaya.net',
-    install_requires=[],
+    license='Apache-2.0',
+    python_requires='>=3.8',
+    install_requires=[],  # NetBox provides framework deps
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
@@ -30,3 +35,4 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
 )
+

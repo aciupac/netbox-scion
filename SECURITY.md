@@ -6,8 +6,7 @@ We support the following versions with security updates:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 1.0.x   | ✅ Yes             |
-| < 1.0   | ❌ No              |
+| 1.x.y   | ✅ Yes             |
 
 ## Reporting a Vulnerability
 

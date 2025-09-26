@@ -67,14 +67,14 @@ class SCIONLinkAssignmentTestCase(TestCase):
             organization=self.organization
         )
         self.assignment = SCIONLinkAssignment.objects.create(
-            isd_as=isd_as,
+            isd_as=self.isdas,
             core="v1",
             interface_id=1,
             relationship=SCIONLinkAssignment.RELATIONSHIP_CHILD,
             customer_id="customer1",
             peer_name="Customer Corp",
             peer="customer-corp-peer",
-            zendesk_ticket="12345"
+            ticket="12345"
         )
 
     def test_assignment_str(self):
@@ -82,10 +82,9 @@ class SCIONLinkAssignmentTestCase(TestCase):
         expected = "1-ff00:0:110 - Interface 1"
         self.assertEqual(str(self.assignment), expected)
 
-    def test_zendesk_url(self):
-        """Test Zendesk URL generation"""
-        expected = "https://anapaya.zendesk.com/agent/tickets/12345"
-        self.assertEqual(self.assignment.get_zendesk_url(), expected)
+    def test_ticket_field(self):
+        """Test ticket field persists"""
+        self.assertEqual(self.assignment.ticket, "12345")
 
     def test_unique_interface_per_isdas(self):
         """Test that interface_id must be unique per ISD-AS"""
@@ -108,6 +107,6 @@ class SCIONLinkAssignmentTestCase(TestCase):
                 customer_id="CUST002",
                 peer_name="Customer Corp",
                 peer="customer-corp-peer",
-                zendesk_ticket="not-a-number"
+                ticket="not-a-number"
             )
             assignment.full_clean()

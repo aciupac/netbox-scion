@@ -15,7 +15,7 @@ class OrganizationSerializer(NetBoxModelSerializer):
     class Meta:
         model = Organization
         fields = (
-            'id', 'display', 'short_name', 'full_name', 'description',
+            'id', 'display', 'short_name', 'full_name', 'description', 'comments',
             'isd_ases_count', 'created', 'last_updated'
         )
 
@@ -37,7 +37,7 @@ class ISDASSerializer(NetBoxModelSerializer):
         model = ISDAS
         fields = (
             'id', 'display', 'isd_as', 'description', 'organization', 'organization_display',
-            'appliances', 'link_assignments_count', 'created', 'last_updated'
+            'appliances', 'comments', 'link_assignments_count', 'created', 'last_updated'
         )
 
 
@@ -52,12 +52,13 @@ class SCIONLinkAssignmentSerializer(NetBoxModelSerializer):
         queryset=ISDAS.objects.all()
     )
     isd_as_display = serializers.CharField(source='isd_as.display', read_only=True)
-    zendesk_url = serializers.CharField(source='get_zendesk_url', read_only=True)
+    # Placeholder for future external ticket URL if implemented
+    ticket_url = serializers.CharField(source='get_ticket_url', read_only=True)
 
     class Meta:
         model = SCIONLinkAssignment
         fields = (
             'id', 'display', 'isd_as', 'isd_as_display', 'core', 'interface_id',
-            'relationship', 'customer_id', 'peer_name', 'peer', 'zendesk_ticket', 'zendesk_url',
-            'created', 'last_updated'
+            'relationship', 'status', 'peer_name', 'peer', 'local_underlay', 'peer_underlay', 'ticket', 'ticket_url',
+            'comments', 'created', 'last_updated'
         )

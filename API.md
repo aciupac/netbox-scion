@@ -396,10 +396,13 @@ curl -X GET \
       "core": "border1.acme.com",
       "interface_id": 1,
       "relationship": "CHILD",
+  "status": "ACTIVE",
       "customer_id": "CUST001",
       "peer_name": "Customer Networks Ltd",
       "peer": "12-332#2",
-      "zendesk_ticket": "12345",
+  "local_underlay": "192.0.2.10:50000",
+  "peer_underlay": "203.0.113.5:60000",
+  "ticket": "https://tickets.example.com/12345",
       "created": "2025-09-09T11:30:00.000000Z",
       "last_updated": "2025-09-09T11:30:00.000000Z",
       "custom_field_data": {}
@@ -419,7 +422,7 @@ curl -X GET \
       "customer_id": "UPSTREAM001",
       "peer_name": "Upstream Provider Inc",
       "peer": "1-ff00:0:100#5",
-      "zendesk_ticket": "",
+  "ticket": "",
       "created": "2025-09-09T11:45:00.000000Z",
       "last_updated": "2025-09-09T11:45:00.000000Z",
       "custom_field_data": {}
@@ -453,10 +456,13 @@ curl -X GET \
   "core": "border1.acme.com",
   "interface_id": 1,
   "relationship": "CHILD",
+  "status": "ACTIVE",
   "customer_id": "CUST001",
   "peer_name": "Customer Networks Ltd",
   "peer": "12-332#2",
-  "zendesk_ticket": "12345",
+  "local_underlay": "192.0.2.10:50000",
+  "peer_underlay": "203.0.113.5:60000",
+  "ticket": "https://tickets.example.com/12345",
   "created": "2025-09-09T11:30:00.000000Z",
   "last_updated": "2025-09-09T11:30:00.000000Z",
   "custom_field_data": {}
@@ -476,11 +482,14 @@ curl -X POST \
     "isd_as": 1,
     "core": "border1.acme.com",
     "interface_id": 3,
-    "relationship": "CORE",
+  "relationship": "CORE",
+  "status": "PLANNED",
     "customer_id": "CORE001",
     "peer_name": "Core Partner",
-    "peer": "3-ff00:0:300#1",
-    "zendesk_ticket": "54321"
+  "peer": "3-ff00:0:300#1",
+  "local_underlay": "[2001:db8::1]:40000",
+  "peer_underlay": "198.51.100.20:40001",
+  "ticket": "https://tickets.example.com/54321"
   }'
 ```
 
@@ -491,9 +500,12 @@ curl -X POST \
   "core": "border1.acme.com", 
   "interface_id": 3,
   "relationship": "CORE",
+  "status": "PLANNED",
   "customer_id": "CORE001",
   "peer_name": "Core Partner",
   "peer": "3-ff00:0:300#1",
+  "local_underlay": "[2001:db8::1]:40000",
+  "peer_underlay": "198.51.100.20:40001",
   "zendesk_ticket": "54321"
 }
 ```
@@ -515,7 +527,7 @@ curl -X POST \
   "customer_id": "CORE001", 
   "peer_name": "Core Partner",
   "peer": "3-ff00:0:300#1",
-  "zendesk_ticket": "54321",
+  "ticket": "https://tickets.example.com/54321",
   "created": "2025-09-09T13:00:00.000000Z",
   "last_updated": "2025-09-09T13:00:00.000000Z",
   "custom_field_data": {}
@@ -533,7 +545,7 @@ curl -X PATCH \
   -H "Content-Type: application/json" \
   -d '{
     "peer_name": "Updated Core Partner Name",
-    "zendesk_ticket": "55555"
+  "ticket": "55555"
   }'
 ```
 
@@ -677,13 +689,20 @@ curl "https://netbox.example.com/api/plugins/scion/link-assignments/?format=csv"
 - `appliances`: Optional JSON array
 
 #### Link Assignment
-- `isd_as`: Required, must reference existing ISD-AS
-- `interface_id`: Required, positive integer, unique per ISD-AS
-- `relationship`: Required, must be one of: PARENT, CHILD, CORE
-- `customer_id`: Required, max 100 characters
-- `peer_name`: Required, max 100 characters  
-- `peer`: Required, max 255 characters, unique per ISD-AS
-- `zendesk_ticket`: Optional, numbers only, max 16 characters
+* `isd_as`: Required, must reference existing ISD-AS
+* `interface_id`: Required, positive integer, unique per ISD-AS
+* `relationship`: Required, must be one of: PARENT, CHILD, CORE
+* `status`: Required, must be one of: ACTIVE, RESERVED, PLANNED (defaults to ACTIVE for existing records during upgrade)
+* `customer_id`: Required, max 100 characters
+* `peer_name`: Optional, max 100 characters  
+* `peer`: Optional, max 255 characters (uniqueness enforced only when non-empty)
+* `local_underlay`: Optional, format ip:port where ip is valid IPv4 or IPv6 and port > 0 (IPv6 may be given with or without brackets; `[2001:db8::1]:12345` is accepted)
+* `peer_underlay`: Optional, format ip:port where ip is valid IPv4 or IPv6 and port > 0 (bracketed IPv6 supported)
+* `ticket`: Optional arbitrary string (up to 512 chars). Display layer will attempt to coerce into a URL if:
+  * It already starts with a scheme (e.g., `https://`)
+  * It starts with `//` (will be prefixed with `https:`)
+  * It looks like a hostname/domain (contains a dot, no spaces) -> prefixed with `https://`
+  Otherwise it is shown as plain text.
 
 ---
 
@@ -747,7 +766,7 @@ if response.status_code == 201:
             "customer_id": "TEST001",
             "peer_name": "Test Peer",
             "peer": "99-test:0:2#1",
-            "zendesk_ticket": "99999"
+            "ticket": "https://tickets.example.com/99999"
         }
         
         link_response = requests.post(

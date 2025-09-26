@@ -24,7 +24,9 @@ class ISDAIndex(SearchIndex):
 class SCIONLinkAssignmentIndex(SearchIndex):
     model = SCIONLinkAssignment
     fields = (
-        ('customer_id', 100),
-        ('peer_name', 200),
-        ('zendesk_ticket', 200),
+        ('core', 100),
+        ('peer_name', 150),
+        ('peer', 150),
+        ('status', 50),
+        ('ticket', 200),
     )
