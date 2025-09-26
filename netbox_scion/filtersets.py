@@ -57,18 +57,18 @@ class SCIONLinkAssignmentFilterSet(NetBoxModelFilterSet):
     
     class Meta:
         model = SCIONLinkAssignment
-        fields = ['id', 'isd_as', 'core', 'relationship', 'peer_name', 'peer', 'customer_id']
+        fields = ['id', 'isd_as', 'core', 'relationship', 'status', 'peer_name', 'peer']
 
     def search(self, queryset, name, value):
         """Perform the filtered search."""
         if not value.strip():
             return queryset
         qs_filter = (
-                Q(isd_as__isd_as__icontains=value)
-                | Q(core__icontains=value)
-                | Q(peer_name__icontains=value)
-                | Q(peer__icontains=value)
-                | Q(customer_id__icontains=value)
-                | Q(zendesk_ticket__icontains=value)
+            Q(isd_as__isd_as__icontains=value)
+            | Q(core__icontains=value)
+            | Q(peer_name__icontains=value)
+            | Q(peer__icontains=value)
+            | Q(ticket__icontains=value)
+            | Q(status__icontains=value)
         )
         return queryset.filter(qs_filter)

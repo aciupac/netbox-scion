@@ -1,4 +1,6 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+import ipaddress
 from django.urls import reverse
 from django.core.validators import RegexValidator
 from netbox.models import NetBoxModel
@@ -26,6 +28,10 @@ class Organization(NetBoxModel):
     description = models.TextField(
         blank=True,
         help_text="Optional description"
+    )
+    comments = models.TextField(
+        blank=True,
+        help_text="Free-form comments (internal notes)"
     )
 
     class Meta:
@@ -66,6 +72,10 @@ class ISDAS(NetBoxModel):
     description = models.TextField(
         blank=True,
         help_text="Optional description"
+    )
+    comments = models.TextField(
+        blank=True,
+        help_text="Free-form comments (internal notes)"
     )
     organization = models.ForeignKey(
         Organization,
@@ -119,6 +129,17 @@ class SCIONLinkAssignment(NetBoxModel):
         (RELATIONSHIP_CHILD, 'CHILD'),
         (RELATIONSHIP_CORE, 'CORE'),
     ]
+
+    # Status choices
+    STATUS_RESERVED = 'RESERVED'
+    STATUS_ACTIVE = 'ACTIVE'
+    STATUS_PLANNED = 'PLANNED'
+
+    STATUS_CHOICES = [
+        (STATUS_RESERVED, 'Reserved'),
+        (STATUS_ACTIVE, 'Active'),
+        (STATUS_PLANNED, 'Planned'),
+    ]
     
     isd_as = models.ForeignKey(
         ISDAS,
@@ -142,29 +163,44 @@ class SCIONLinkAssignment(NetBoxModel):
         verbose_name="Relationship",
         help_text="Relationship type of this SCION link"
     )
-    customer_id = models.CharField(
-        max_length=100,
-        help_text="Customer identifier"
+    status = models.CharField(
+        max_length=16,
+        choices=STATUS_CHOICES,
+        default=STATUS_ACTIVE,
+        help_text="Operational status of this link assignment"
     )
     peer_name = models.CharField(
         max_length=100,
-        help_text="Peer name"
+        blank=True,
+        help_text="Peer name (optional)"
     )
     peer = models.CharField(
         max_length=255,
-        help_text="ISD-AS and Interface Number identifier in format '{isd}-{as}#{interface_number}' (e.g., '1-ff00:0:110#1' or '1-1#1')"
-    )
-    zendesk_ticket = models.CharField(
-        max_length=16,
         blank=True,
-        validators=[
-            RegexValidator(
-                regex=r'^\d+$',
-                message="Zendesk ticket must be a number",
-                code='invalid_ticket'
-            )
-        ],
-        help_text="Zendesk ticket number (numbers only, optional)"
+        help_text="Peer identifier (optional) in format '{isd}-{as}#{interface_number}' when provided"
+    )
+    local_underlay = models.CharField(
+        max_length=300,
+        blank=True,
+        help_text="Local underlay endpoint in format ip:port (IPv4 or IPv6; bracketed IPv6 supported)"
+    )
+    peer_underlay = models.CharField(
+        max_length=300,
+        blank=True,
+        help_text="Peer underlay endpoint in format ip:port (IPv4 or IPv6; bracketed IPv6 supported)"
+    )
+    # Store arbitrary user input meant to represent a URL. We intentionally do NOT validate
+    # or constrain format so that any external system reference can be pasted (full URL,
+    # partial path, ID, etc.). For display purposes we'll attempt to coerce it into a URL
+    # when rendering (prefixing with https:// if it looks like a hostname or path).
+    ticket = models.CharField(
+        max_length=512,
+        blank=True,
+        help_text="External reference (treated as URL if possible; no validation enforced)"
+    )
+    comments = models.TextField(
+        blank=True,
+        help_text="Free-form comments (internal notes)"
     )
 
     class Meta:
@@ -192,8 +228,49 @@ class SCIONLinkAssignment(NetBoxModel):
     def get_absolute_url(self):
         return reverse('plugins:netbox_scion:scionlinkassignment', args=[self.pk])
 
-    def get_zendesk_url(self):
-        """Return the full Zendesk URL for this ticket"""
-        if self.zendesk_ticket:
-            return f"https://anapaya.zendesk.com/agent/tickets/{self.zendesk_ticket}"
+    def get_ticket_url(self):
+        """Best-effort URL normalization of the stored ticket value.
+
+        Rules (lightweight on purpose):
+        - Empty/blank -> None
+        - Already starts with a scheme (http:// or https:// or other) -> return as-is
+        - Starts with '//' (protocol-relative) -> prefix with 'https:'
+        - Looks like a domain (contains a dot, no spaces) -> prefix with 'https://'
+        - Looks like a single path fragment or ID -> return None (caller can still show raw)
+        """
+        value = (self.ticket or '').strip()
+        if not value:
+            return None
+        lower = value.lower()
+        if lower.startswith('http://') or lower.startswith('https://') or '://' in value:
+            return value
+        if value.startswith('//'):
+            return f"https:{value}"
+        # Heuristic: treat as domain if it has at least one dot and no spaces
+        if ' ' not in value and '.' in value:
+            return f"https://{value}"
         return None
+
+    def clean(self):
+        super().clean()
+        # Validate underlay fields if provided
+        for field_name in ('local_underlay', 'peer_underlay'):
+            value = getattr(self, field_name, '') or ''
+            if value:
+                try:
+                    ip_part, port_part = value.rsplit(':', 1)
+                except ValueError:
+                    raise ValidationError({field_name: 'Must be in format ip:port'})
+                # Validate port
+                if not port_part.isdigit() or int(port_part) <= 0:
+                    raise ValidationError({field_name: 'Port must be a positive integer'})
+                # Validate IP (IPv4 or IPv6)
+                try:
+                    # Strip brackets for IPv6 like [2001:db8::1]
+                    if ip_part.startswith('[') and ip_part.endswith(']'):
+                        candidate_ip = ip_part[1:-1]
+                    else:
+                        candidate_ip = ip_part
+                    ipaddress.ip_address(candidate_ip)
+                except ValueError:
+                    raise ValidationError({field_name: 'Invalid IP address'})

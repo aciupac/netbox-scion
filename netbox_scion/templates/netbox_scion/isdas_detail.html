@@ -84,7 +84,9 @@
     <div class="col col-md-6">
         <div class="card">
             <h5 class="card-header">
-                SCION Link Assignments
+                <a href="{% url 'plugins:netbox_scion:scionlinkassignment_list' %}?isd_as={{ object.pk }}" class="text-decoration-none text-primary">
+                    SCION Link Assignments
+                </a>
                 <div class="card-actions">
                     <a href="{% url 'plugins:netbox_scion:scionlinkassignment_add' %}?isd_as={{ object.pk }}" class="btn btn-primary btn-sm">
                         <i class="mdi mdi-plus-thick"></i> Add
@@ -97,17 +99,51 @@
                     <tr>
                         <th>Interface</th>
                         <th>Appliance</th>
-                        <th>Customer</th>
-                        <th>Zendesk</th>
+                        <th>Relationship</th>
+                        <th>Status</th>
+                        <th>Peer Name</th>
+                        <th>Peer</th>
+                        <th>Ticket</th>
                     </tr>
                     {% for assignment in object.link_assignments.all %}
                     <tr>
                         <td><a href="{% url 'plugins:netbox_scion:scionlinkassignment' assignment.pk %}">{{ assignment.interface_id }}</a></td>
                         <td>{{ assignment.core }}</td>
-                        <td>{{ assignment.peer_name }}</td>
                         <td>
-                            {% if assignment.zendesk_ticket %}
-                                <a href="{{ assignment.get_zendesk_url }}" target="_blank">{{ assignment.zendesk_ticket }}</a>
+                            {% if assignment.relationship == 'CORE' %}
+                                <span class="badge" style="background-color:#4f46e5;color:#fff;font-weight:500;">Core</span>
+                            {% elif assignment.relationship == 'CHILD' %}
+                                <span class="badge" style="background-color:#14b8a6;color:#fff;font-weight:500;">Child</span>
+                            {% elif assignment.relationship == 'PARENT' %}
+                                <span class="badge" style="background-color:#3b82f6;color:#fff;font-weight:500;">Parent</span>
+                            {% else %}
+                                {{ assignment.get_relationship_display }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if assignment.status %}
+                                {% if assignment.status == 'ACTIVE' %}
+                                    <span class="badge" style="background-color:#28a745;color:#fff;font-weight:500;">Active</span>
+                                {% elif assignment.status == 'RESERVED' %}
+                                    <span class="badge" style="background-color:#ffc107;color:#000;font-weight:500;">Reserved</span>
+                                {% elif assignment.status == 'PLANNED' %}
+                                    <span class="badge" style="background-color:#6c757d;color:#fff;font-weight:500;">Planned</span>
+                                {% else %}
+                                    <span class="badge badge-secondary">{{ assignment.status }}</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>{{ assignment.peer_name }}</td>
+                        <td>{{ assignment.peer }}</td>
+                        <td>
+                            {% if assignment.ticket %}
+                                {% with url=assignment.get_ticket_url %}
+                                    {% if url %}
+                                        <a href="{{ url }}" target="_blank" rel="noopener noreferrer">{{ assignment.ticket }}</a>
+                                    {% else %}
+                                        {{ assignment.ticket }}
+                                    {% endif %}
+                                {% endwith %}
                             {% else %}
                                 <span class="text-muted">—</span>
                             {% endif %}

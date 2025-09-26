@@ -7,9 +7,10 @@ from .models import Organization, ISDAS, SCIONLinkAssignment
 class OrganizationForm(NetBoxModelForm):
     class Meta:
         model = Organization
-        fields = ('short_name', 'full_name', 'description')
+        fields = ('short_name', 'full_name', 'description', 'comments')
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
+            'comments': forms.Textarea(attrs={'rows': 4}),
         }
 
 
@@ -23,13 +24,14 @@ class ISDAForm(NetBoxModelForm):
     
     class Meta:
         model = ISDAS
-        fields = ('isd_as', 'description', 'organization', 'appliances')
+        fields = ('isd_as', 'description', 'organization', 'appliances', 'comments')
         labels = {
             'isd_as': 'ISD-AS',
         }
         widgets = {
             'description': forms.Textarea(attrs={'rows': 3}),
             'organization': forms.Select(),
+            'comments': forms.Textarea(attrs={'rows': 4}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -79,21 +81,30 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
 
     class Meta:
         model = SCIONLinkAssignment
-        fields = ('isd_as', 'core', 'interface_id', 'relationship', 'peer_name', 'peer', 'customer_id', 'zendesk_ticket')
+        fields = (
+            'isd_as', 'core', 'interface_id', 'relationship', 'status', 'peer_name', 'peer',
+            'local_underlay', 'peer_underlay', 'ticket', 'comments'
+        )
         labels = {
             'isd_as': 'ISD-AS',
             'interface_id': 'Interface ID',
-            'peer_name': 'Peer Name',
-            'peer': 'Peer',
-            'customer_id': 'Customer ID',
-            'zendesk_ticket': 'Zendesk Ticket ID',
+            'peer_name': 'Peer Name (optional)',
+            'status': 'Status',
+            'peer': 'Peer (optional)',
+            'local_underlay': 'Local Underlay (ip:port)',
+            'peer_underlay': 'Peer Underlay (ip:port)',
+            'ticket': 'Ticket',
+            'comments': 'Comments',
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Make customer_id and zendesk_ticket optional
-        self.fields['customer_id'].required = False
-        self.fields['zendesk_ticket'].required = False
+        # Make optional fields not required
+        self.fields['ticket'].required = False
+        self.fields['peer_name'].required = False
+        self.fields['peer'].required = False
+        self.fields['local_underlay'].required = False
+        self.fields['peer_underlay'].required = False
         
         # Set up the core field choices based on the selected ISD-AS
         isd_as = None
@@ -143,12 +154,10 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
         # Now run the normal validation
         super().full_clean()
 
-    def clean_zendesk_ticket(self):
-        ticket = self.cleaned_data.get('zendesk_ticket', '')
-        if ticket and ticket.strip():  # Only validate if not empty
-            if not ticket.isdigit():
-                raise forms.ValidationError("Zendesk ticket must contain only numbers")
-        return ticket
+    def clean_ticket(self):
+        # No special validation; allow any trimmed string (may become a URL on display)
+        ticket = self.cleaned_data.get('ticket', '')
+        return ticket.strip() if isinstance(ticket, str) else ticket
 
     def clean(self):
         cleaned_data = super().clean()

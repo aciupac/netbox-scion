@@ -18,14 +18,22 @@ Thank you for your interest in contributing to the NetBox SCION plugin!
 6. Submit a pull request
 
 ### Building the Package
-To build distribution packages:
+Recommended modern build (PEP 517):
 ```bash
-# Build both source distribution and wheel
-python setup.py sdist bdist_wheel
+python -m pip install --upgrade build
+python -m build
+```
+Artifacts appear under `dist/`:
+- `netbox_scion-X.Y.Z-py3-none-any.whl`
+- `netbox-scion-X.Y.Z.tar.gz`
 
-# Files will be created in dist/ directory:
-# - netbox-scion-X.Y.Z.tar.gz (source distribution)
-# - netbox_scion-X.Y.Z-py3-none-any.whl (wheel package)
+Legacy (still supported) invocation:
+```bash
+python setup.py sdist bdist_wheel
+```
+If you see `TypeError: canonicalize_version() got an unexpected keyword argument 'strip_trailing_zero'`, upgrade packaging tools:
+```bash
+python -m pip install --upgrade pip setuptools wheel packaging
 ```
 
 ### Local Testing
