@@ -35,7 +35,7 @@ netbox_scion/
   filtersets.py      # Searching & field filtering
   tables.py          # django-tables2 table definitions
   views.py           # Web CRUD & custom appliance mgmt actions
-  urls.py            # UI URL routes (hyphenated segments for lists)
+  urls.py            # UI URL routes (hyphenated segments for lists; changelog routes pass model via kwargs)
   navigation.py      # Sidebar menu & buttons
   admin.py           # Django admin registrations
   api/
@@ -137,6 +137,7 @@ Key Caveat:
 ## 10. Views (`views.py`)
 Use NetBox generic class-based views for consistency:
 - `ObjectListView` + `ObjectView` + `ObjectEditView` + `ObjectDeleteView` + `BulkDeleteView` + `ObjectChangeLogView`.
+- Changelog CBVs define `base_template` matching their detail pages; the URLconf must supply the target model (see §12).
 - Querysets optimized with `select_related` / `prefetch_related`.
 - Custom appliance mgmt functions (add/edit/remove) manipulate list stored in JSON and propagate edits:
   - Renaming appliance updates all related `SCIONLinkAssignment.core` values (bulk update query).
@@ -155,6 +156,7 @@ UI (`urls.py`):
 - Organizations: `/organizations/` CRUD & changelog
 - ISD-ASes: `/isd-ases/` + appliance mgmt nested operations
 - Link Assignments: `/link-assignments/`
+- Changelog entries use NetBox's `ObjectChangeLogView`; include `kwargs={'model': Model}` in the URL pattern to avoid runtime errors.
 - AJAX: `/ajax/isdas-appliances/`
 API (`api/urls.py`):
 - Router registers `organizations`, `isd-ases`, `link-assignments`

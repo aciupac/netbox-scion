@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.0] - 2025-09-25
+## [1.3.0] - 2025-10-01
 
 ### Added
 - `comments` field (free-form internal notes) added to Organization, ISD-AS, and SCION Link Assignment models (migration 0011)
@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Serializer exposure for new `comments` fields
 - Exposed `status`, `local_underlay`, `peer_underlay`, `comments` fields on SCION Link Assignment form
 - Renamed form label to "Ticket" (was "External Reference / URL")
+- Restored plugin changelog pages by providing the `model` kwarg to `ObjectChangeLogView` routes and aligning their base templates with the corresponding detail pages.
 
 ### Removed
 - Removed `customer_id` field from SCION Link Assignments (migration 0017)

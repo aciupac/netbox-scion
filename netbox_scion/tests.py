@@ -1,5 +1,7 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+from django.urls import reverse
 from .models import Organization, ISDAS, SCIONLinkAssignment
 
 
@@ -110,3 +112,47 @@ class SCIONLinkAssignmentTestCase(TestCase):
                 ticket="not-a-number"
             )
             assignment.full_clean()
+
+
+class ChangeLogViewTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.user = user_model.objects.create_user(
+            username="testuser",
+            password="testpass",
+            email="test@example.com"
+        )
+        self.user.is_staff = True
+        self.user.is_superuser = True
+        self.user.save()
+        self.client.force_login(self.user)
+
+        self.organization = Organization.objects.create(
+            short_name="ACME",
+            full_name="ACME Corporation"
+        )
+        self.isdas = ISDAS.objects.create(
+            isd_as="1-ff00:0:200",
+            organization=self.organization
+        )
+        self.assignment = SCIONLinkAssignment.objects.create(
+            isd_as=self.isdas,
+            core="core1",
+            interface_id=10,
+            relationship=SCIONLinkAssignment.RELATIONSHIP_CHILD
+        )
+
+    def test_organization_changelog_view(self):
+        url = reverse('plugins:netbox_scion:organization_changelog', kwargs={'pk': self.organization.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_isdas_changelog_view(self):
+        url = reverse('plugins:netbox_scion:isdas_changelog', kwargs={'pk': self.isdas.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_link_assignment_changelog_view(self):
+        url = reverse('plugins:netbox_scion:scionlinkassignment_changelog', kwargs={'pk': self.assignment.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
