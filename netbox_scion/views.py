@@ -73,19 +73,7 @@ class OrganizationBulkDeleteView(generic.BulkDeleteView):
 class OrganizationChangeLogView(generic.ObjectChangeLogView):
     queryset = models.Organization.objects.all()
     model = models.Organization
-    def get(self, request, *args, **kwargs):
-        """Call parent get() using whichever signature the installed NetBox expects.
-
-        NetBox 4.1.x vs 4.4.x have differing ObjectChangeLogView.get signatures.
-        We first try the newer (request, *args, **kwargs) form; if it errors due to a
-        missing 'model' positional argument we retry with (request, model, *args, **kwargs).
-        """
-        try:
-            return super().get(request, *args, **kwargs)
-        except TypeError as e:
-            if 'model' in str(e) and self.model is not None:
-                return super().get(request, self.model, *args, **kwargs)
-            raise
+    base_template = 'netbox_scion/organization_detail.html'
 
 
 class ISDAView(generic.ObjectView):
@@ -117,13 +105,7 @@ class ISDABulkDeleteView(generic.BulkDeleteView):
 class ISDAChangeLogView(generic.ObjectChangeLogView):
     queryset = models.ISDAS.objects.all()
     model = models.ISDAS
-    def get(self, request, *args, **kwargs):
-        try:
-            return super().get(request, *args, **kwargs)
-        except TypeError as e:
-            if 'model' in str(e) and self.model is not None:
-                return super().get(request, self.model, *args, **kwargs)
-            raise
+    base_template = 'netbox_scion/isdas_detail.html'
 
 
 def add_appliance_to_isdas(request, pk):
@@ -266,10 +248,4 @@ class SCIONLinkAssignmentBulkDeleteView(generic.BulkDeleteView):
 class SCIONLinkAssignmentChangeLogView(generic.ObjectChangeLogView):
     queryset = models.SCIONLinkAssignment.objects.all()
     model = models.SCIONLinkAssignment
-    def get(self, request, *args, **kwargs):
-        try:
-            return super().get(request, *args, **kwargs)
-        except TypeError as e:
-            if 'model' in str(e) and self.model is not None:
-                return super().get(request, self.model, *args, **kwargs)
-            raise
+    base_template = 'netbox_scion/scionlinkassignment_detail.html'
