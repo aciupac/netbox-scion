@@ -5,12 +5,14 @@ This document provides comprehensive API documentation for the NetBox SCION plug
 ## Base URL
 
 All API endpoints are prefixed with:
-```
+
+```text
 /api/plugins/scion/
 ```
 
 For a NetBox instance running at `https://netbox.example.com`, the full base URL would be:
-```
+
+```text
 https://netbox.example.com/api/plugins/scion/
 ```
 
@@ -22,6 +24,7 @@ The API uses the same authentication methods as NetBox:
 - **Session Authentication**: For browser-based access with CSRF tokens
 
 ### Getting an API Token
+
 1. Log into NetBox web interface
 2. Go to your user profile → API Tokens
 3. Create a new token with appropriate permissions
@@ -29,7 +32,8 @@ The API uses the same authentication methods as NetBox:
 ## Content Type
 
 All requests should use JSON content type:
-```
+
+```text
 Content-Type: application/json
 ```
 
@@ -39,8 +43,9 @@ Content-Type: application/json
 
 Manage SCION network operators and organizations.
 
-### Base Endpoint
-```
+### Base Endpoint (Organizations)
+
+```text
 /api/plugins/scion/organizations/
 ```
 
@@ -55,7 +60,10 @@ curl -X GET \
   -H "Content-Type: application/json"
 ```
 
+Fields returned now include `comments` (internal notes) and `isd_ases_count` (annotated count of related ISD-ASes).
+
 **Response:**
+
 ```json
 {
   "count": 2,
@@ -68,7 +76,9 @@ curl -X GET \
       "display": "ACME",
       "short_name": "ACME",
       "full_name": "ACME Corporation",
-      "description": "Sample SCION operator",
+  "description": "Sample SCION operator",
+  "comments": "Internal note about ACME org",
+  "isd_ases_count": 1,
       "created": "2025-09-09T10:00:00.000000Z",
       "last_updated": "2025-09-09T10:00:00.000000Z",
       "custom_field_data": {}
@@ -79,7 +89,9 @@ curl -X GET \
       "display": "EXAMPLE",
       "short_name": "EXAMPLE",
       "full_name": "Example Networks Ltd",
-      "description": "",
+  "description": "",
+  "comments": "",
+  "isd_ases_count": 0,
       "created": "2025-09-09T10:15:00.000000Z",
       "last_updated": "2025-09-09T10:15:00.000000Z",
       "custom_field_data": {}
@@ -100,6 +112,7 @@ curl -X GET \
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -108,6 +121,8 @@ curl -X GET \
   "short_name": "ACME",
   "full_name": "ACME Corporation",
   "description": "Sample SCION operator providing connectivity services",
+  "comments": "Business priority customer",
+  "isd_ases_count": 1,
   "created": "2025-09-09T10:00:00.000000Z",
   "last_updated": "2025-09-09T10:00:00.000000Z",
   "custom_field_data": {}
@@ -130,16 +145,21 @@ curl -X POST \
   }'
 ```
 
+You may optionally include `comments` when creating.
+
 **Request Body:**
+
 ```json
 {
   "short_name": "NEWCORP",
   "full_name": "New Corporation Inc", 
-  "description": "A new SCION network operator"
+  "description": "A new SCION network operator",
+  "comments": "Created during expansion phase"
 }
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "id": 3,
@@ -148,6 +168,8 @@ curl -X POST \
   "short_name": "NEWCORP",
   "full_name": "New Corporation Inc",
   "description": "A new SCION network operator",
+  "comments": "Created during expansion phase",
+  "isd_ases_count": 0,
   "created": "2025-09-09T12:00:00.000000Z",
   "last_updated": "2025-09-09T12:00:00.000000Z",
   "custom_field_data": {}
@@ -164,7 +186,8 @@ curl -X PATCH \
   -H "Authorization: Token your-api-token" \
   -H "Content-Type: application/json" \
   -d '{
-    "description": "Updated description for the organization"
+    "description": "Updated description for the organization",
+    "comments": "Refreshed strategic positioning notes"
   }'
 ```
 
@@ -188,8 +211,9 @@ curl -X DELETE \
 
 Manage SCION ISD-AS (Isolation Domain - Autonomous System) identifiers.
 
-### Base Endpoint
-```
+### Base Endpoint (ISD-ASes)
+
+```text
 /api/plugins/scion/isd-ases/
 ```
 
@@ -204,7 +228,10 @@ curl -X GET \
   -H "Content-Type: application/json"
 ```
 
+Fields returned now include `comments`, `organization_display`, and `link_assignments_count`.
+
 **Response:**
+
 ```json
 {
   "count": 2,
@@ -222,8 +249,11 @@ curl -X GET \
         "url": "https://netbox.example.com/api/plugins/scion/organizations/1/",
         "display": "ACME"
       },
+      "organization_display": "ACME",
       "appliances": ["border1.acme.com", "border2.acme.com"],
       "appliances_display": "border1.acme.com, border2.acme.com",
+      "comments": "Primary production AS",
+      "link_assignments_count": 2,
       "created": "2025-09-09T10:30:00.000000Z",
       "last_updated": "2025-09-09T10:30:00.000000Z",
       "custom_field_data": {}
@@ -239,8 +269,11 @@ curl -X GET \
         "url": "https://netbox.example.com/api/plugins/scion/organizations/2/",
         "display": "EXAMPLE"
       },
+      "organization_display": "EXAMPLE",
       "appliances": ["router1.example.com"],
       "appliances_display": "router1.example.com",
+      "comments": "",
+      "link_assignments_count": 0,
       "created": "2025-09-09T11:00:00.000000Z",
       "last_updated": "2025-09-09T11:00:00.000000Z",
       "custom_field_data": {}
@@ -261,6 +294,7 @@ curl -X GET \
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -273,8 +307,11 @@ curl -X GET \
     "url": "https://netbox.example.com/api/plugins/scion/organizations/1/",
     "display": "ACME"
   },
+  "organization_display": "ACME",
   "appliances": ["border1.acme.com", "border2.acme.com", "transit1.acme.com"],
   "appliances_display": "border1.acme.com, border2.acme.com, transit1.acme.com",
+  "comments": "Primary transit node set",
+  "link_assignments_count": 2,
   "created": "2025-09-09T10:30:00.000000Z",
   "last_updated": "2025-09-09T10:30:00.000000Z",
   "custom_field_data": {}
@@ -298,17 +335,22 @@ curl -X POST \
   }'
 ```
 
+You may optionally include `comments` when creating.
+
 **Request Body:**
+
 ```json
 {
   "isd_as": "2-ff00:0:220",
   "organization": 1,
   "appliances": ["core1.newnet.com", "core2.newnet.com"],
-  "description": "New ISD-AS for expanded network"
+  "description": "New ISD-AS for expanded network",
+  "comments": "Staging AS for rollout"
 }
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "id": 3,
@@ -323,6 +365,8 @@ curl -X POST \
   },
   "appliances": ["core1.newnet.com", "core2.newnet.com"],
   "appliances_display": "core1.newnet.com, core2.newnet.com",
+  "comments": "Staging AS for rollout",
+  "link_assignments_count": 0,
   "created": "2025-09-09T12:30:00.000000Z",
   "last_updated": "2025-09-09T12:30:00.000000Z",
   "custom_field_data": {}
@@ -339,7 +383,8 @@ curl -X PATCH \
   -H "Authorization: Token your-api-token" \
   -H "Content-Type: application/json" \
   -d '{
-    "appliances": ["core1.newnet.com", "core2.newnet.com", "backup1.newnet.com"]
+    "appliances": ["core1.newnet.com", "core2.newnet.com", "backup1.newnet.com"],
+    "comments": "Added backup appliance"
   }'
 ```
 
@@ -359,10 +404,11 @@ curl -X DELETE \
 
 ## 🔗 SCION Link Assignments API
 
-Manage SCION link interface assignments with customer information.
+Manage SCION link interface assignments between appliances and peers.
 
-### Base Endpoint
-```
+### Base Endpoint (Link Assignments)
+
+```text
 /api/plugins/scion/link-assignments/
 ```
 
@@ -377,7 +423,10 @@ curl -X GET \
   -H "Content-Type: application/json"
 ```
 
+Fields returned now include `status`, `local_underlay`, `peer_underlay`, `ticket_url` (normalized URL if derivable), `comments`. The `customer_id` field has been removed (see changelog); use `peer_name`, `peer`, and free-form `comments` instead.
+
 **Response:**
+
 ```json
 {
   "count": 3,
@@ -395,14 +444,15 @@ curl -X GET \
       },
       "core": "border1.acme.com",
       "interface_id": 1,
-      "relationship": "CHILD",
-  "status": "ACTIVE",
-      "customer_id": "CUST001",
+    "relationship": "CHILD",
+    "status": "ACTIVE",
       "peer_name": "Customer Networks Ltd",
       "peer": "12-332#2",
-  "local_underlay": "192.0.2.10:50000",
-  "peer_underlay": "203.0.113.5:60000",
-  "ticket": "https://tickets.example.com/12345",
+    "local_underlay": "192.0.2.10:50000",
+    "peer_underlay": "203.0.113.5:60000",
+    "ticket": "https://tickets.example.com/12345",
+    "ticket_url": "https://tickets.example.com/12345",
+    "comments": "Migration wave 1",
       "created": "2025-09-09T11:30:00.000000Z",
       "last_updated": "2025-09-09T11:30:00.000000Z",
       "custom_field_data": {}
@@ -418,11 +468,12 @@ curl -X GET \
       },
       "core": "border2.acme.com",
       "interface_id": 2,
-      "relationship": "PARENT",
-      "customer_id": "UPSTREAM001",
+    "relationship": "PARENT",
       "peer_name": "Upstream Provider Inc",
       "peer": "1-ff00:0:100#5",
-  "ticket": "",
+    "ticket": "",
+    "ticket_url": null,
+    "comments": "",
       "created": "2025-09-09T11:45:00.000000Z",
       "last_updated": "2025-09-09T11:45:00.000000Z",
       "custom_field_data": {}
@@ -443,6 +494,7 @@ curl -X GET \
 ```
 
 **Response:**
+
 ```json
 {
   "id": 1,
@@ -457,12 +509,13 @@ curl -X GET \
   "interface_id": 1,
   "relationship": "CHILD",
   "status": "ACTIVE",
-  "customer_id": "CUST001",
   "peer_name": "Customer Networks Ltd",
   "peer": "12-332#2",
   "local_underlay": "192.0.2.10:50000",
   "peer_underlay": "203.0.113.5:60000",
   "ticket": "https://tickets.example.com/12345",
+  "ticket_url": "https://tickets.example.com/12345",
+  "comments": "Migration wave 1",
   "created": "2025-09-09T11:30:00.000000Z",
   "last_updated": "2025-09-09T11:30:00.000000Z",
   "custom_field_data": {}
@@ -482,18 +535,21 @@ curl -X POST \
     "isd_as": 1,
     "core": "border1.acme.com",
     "interface_id": 3,
-  "relationship": "CORE",
-  "status": "PLANNED",
-    "customer_id": "CORE001",
+    "relationship": "CORE",
+    "status": "PLANNED",
     "peer_name": "Core Partner",
-  "peer": "3-ff00:0:300#1",
-  "local_underlay": "[2001:db8::1]:40000",
-  "peer_underlay": "198.51.100.20:40001",
-  "ticket": "https://tickets.example.com/54321"
+    "peer": "3-ff00:0:300#1",
+    "local_underlay": "[2001:db8::1]:40000",
+    "peer_underlay": "198.51.100.20:40001",
+    "ticket": "core-partner.example.com/t/54321",
+    "comments": "Planned core link"
   }'
 ```
 
+You may optionally include `status` (defaults to ACTIVE), `local_underlay`, `peer_underlay`, `ticket`, `comments`. Field `peer` and `peer_name` are optional. Omit deprecated `customer_id`.
+
 **Request Body:**
+
 ```json
 {
   "isd_as": 1,
@@ -501,16 +557,17 @@ curl -X POST \
   "interface_id": 3,
   "relationship": "CORE",
   "status": "PLANNED",
-  "customer_id": "CORE001",
   "peer_name": "Core Partner",
   "peer": "3-ff00:0:300#1",
   "local_underlay": "[2001:db8::1]:40000",
   "peer_underlay": "198.51.100.20:40001",
-  "zendesk_ticket": "54321"
+  "ticket": "core-partner.example.com/t/54321",
+  "comments": "Planned core link"
 }
 ```
 
 **Response (201 Created):**
+
 ```json
 {
   "id": 3,
@@ -524,10 +581,14 @@ curl -X POST \
   "core": "border1.acme.com",
   "interface_id": 3,
   "relationship": "CORE",
-  "customer_id": "CORE001", 
+  "status": "PLANNED",
   "peer_name": "Core Partner",
   "peer": "3-ff00:0:300#1",
-  "ticket": "https://tickets.example.com/54321",
+  "local_underlay": "[2001:db8::1]:40000",
+  "peer_underlay": "198.51.100.20:40001",
+  "ticket": "core-partner.example.com/t/54321",
+  "ticket_url": "https://core-partner.example.com/t/54321",
+  "comments": "Planned core link",
   "created": "2025-09-09T13:00:00.000000Z",
   "last_updated": "2025-09-09T13:00:00.000000Z",
   "custom_field_data": {}
@@ -545,7 +606,9 @@ curl -X PATCH \
   -H "Content-Type: application/json" \
   -d '{
     "peer_name": "Updated Core Partner Name",
-  "ticket": "55555"
+    "status": "ACTIVE",
+    "ticket": "https://tickets.example.com/55555",
+    "comments": "Activated after maintenance"
   }'
 ```
 
@@ -570,6 +633,7 @@ All list endpoints support filtering and search parameters.
 ### Common Filter Parameters
 
 #### Organizations
+
 - `short_name`: Filter by organization short name
 - `q`: Search in short_name, full_name, and description
 
@@ -582,6 +646,7 @@ curl "https://netbox.example.com/api/plugins/scion/organizations/?short_name=ACM
 ```
 
 #### ISD-ASes
+
 - `isd_as`: Filter by ISD-AS identifier
 - `organization`: Filter by organization ID
 - `organization__short_name`: Filter by organization short name
@@ -599,13 +664,15 @@ curl "https://netbox.example.com/api/plugins/scion/isd-ases/?q=ff00"
 ```
 
 #### Link Assignments
-- `isd_as`: Filter by ISD-AS ID
-- `isd_as__isd_as`: Filter by ISD-AS identifier
+
+- `isd_as`: Filter by ISD-AS (internal ID)
+- `isd_as__isd_as`: Filter by ISD-AS identifier string
+- `core`: Filter by appliance/core name
 - `relationship`: Filter by relationship type (PARENT, CHILD, CORE)
-- `customer_id`: Filter by customer ID
+- `status`: Filter by status (ACTIVE, RESERVED, PLANNED)
 - `peer_name`: Filter by peer name
 - `peer`: Filter by peer identifier
-- `q`: Search across customer_id, peer_name, and zendesk_ticket
+- `q`: Full-text style search across ISD-AS identifier, core, peer_name, peer, status, ticket
 
 ```bash
 # Filter by relationship type
@@ -614,8 +681,8 @@ curl "https://netbox.example.com/api/plugins/scion/link-assignments/?relationshi
 # Filter by ISD-AS identifier
 curl "https://netbox.example.com/api/plugins/scion/link-assignments/?isd_as__isd_as=1-ff00:0:110"
 
-# Search for customer information
-curl "https://netbox.example.com/api/plugins/scion/link-assignments/?q=customer"
+# Search for a ticket fragment
+curl "https://netbox.example.com/api/plugins/scion/link-assignments/?q=54321"
 ```
 
 ### Pagination
@@ -680,29 +747,35 @@ curl "https://netbox.example.com/api/plugins/scion/link-assignments/?format=csv"
 ### Validation Rules
 
 #### Organization
+
 - `short_name`: Required, unique, max 100 characters
 - `full_name`: Required, max 200 characters
+- `comments`: Optional free-form text
 
 #### ISD-AS
+
 - `isd_as`: Required, unique, must match format `{isd}-{as}` (e.g., `1-ff00:0:110` or `1-1`)
 - `organization`: Required, must reference existing organization
-- `appliances`: Optional JSON array
+- `appliances`: Optional JSON array of strings
+- `comments`: Optional free-form text
 
 #### Link Assignment
-* `isd_as`: Required, must reference existing ISD-AS
-* `interface_id`: Required, positive integer, unique per ISD-AS
-* `relationship`: Required, must be one of: PARENT, CHILD, CORE
-* `status`: Required, must be one of: ACTIVE, RESERVED, PLANNED (defaults to ACTIVE for existing records during upgrade)
-* `customer_id`: Required, max 100 characters
-* `peer_name`: Optional, max 100 characters  
-* `peer`: Optional, max 255 characters (uniqueness enforced only when non-empty)
-* `local_underlay`: Optional, format ip:port where ip is valid IPv4 or IPv6 and port > 0 (IPv6 may be given with or without brackets; `[2001:db8::1]:12345` is accepted)
-* `peer_underlay`: Optional, format ip:port where ip is valid IPv4 or IPv6 and port > 0 (bracketed IPv6 supported)
-* `ticket`: Optional arbitrary string (up to 512 chars). Display layer will attempt to coerce into a URL if:
-  * It already starts with a scheme (e.g., `https://`)
-  * It starts with `//` (will be prefixed with `https:`)
-  * It looks like a hostname/domain (contains a dot, no spaces) -> prefixed with `https://`
+
+- `isd_as`: Required, must reference existing ISD-AS (primary key integer)
+- `core`: Required, appliance name (string)
+- `interface_id`: Required, positive integer, unique per ISD-AS
+- `relationship`: Required, one of: PARENT, CHILD, CORE
+- `status`: Required, one of: ACTIVE, RESERVED, PLANNED (defaults to ACTIVE)
+- `peer_name`: Optional, max 100 characters  
+- `peer`: Optional, max 255 characters (uniqueness enforced per ISD-AS only when non-empty) format suggestion `{isd}-{as}#{interface}`
+- `local_underlay`: Optional, format ip:port where ip is valid IPv4 or IPv6 and port > 0 (IPv6 may be given with or without brackets; `[2001:db8::1]:12345` accepted)
+- `peer_underlay`: Optional, format ip:port where ip is valid IPv4 or IPv6 and port > 0 (bracketed IPv6 supported)
+- `ticket`: Optional arbitrary string (up to 512 chars). Display layer will attempt to coerce into a URL if:
+  - It already starts with a scheme (e.g., `https://`)
+  - It starts with `//` (will be prefixed with `https:`)
+  - It looks like a hostname/domain (contains a dot, no spaces) -> prefixed with `https://`
   Otherwise it is shown as plain text.
+- `comments`: Optional free-form text
 
 ---
 
@@ -757,16 +830,17 @@ if response.status_code == 201:
         isdas = isdas_response.json()
         print(f"Created ISD-AS: {isdas['display']}")
         
-        # Create a link assignment
+    # Create a link assignment (note: customer_id removed, status optional)
         link_data = {
             "isd_as": isdas["id"],
             "core": "test1.example.com",
             "interface_id": 1,
             "relationship": "CHILD",
-            "customer_id": "TEST001",
             "peer_name": "Test Peer",
             "peer": "99-test:0:2#1",
-            "ticket": "https://tickets.example.com/99999"
+      "status": "ACTIVE",
+      "ticket": "https://tickets.example.com/99999",
+      "comments": "Initial test link"
         }
         
         link_response = requests.post(
@@ -792,22 +866,28 @@ if response.status_code == 200:
 
 ## 📝 Notes
 
-1. **Unique Constraints:**
-   - Organization `short_name` must be unique globally
-   - ISD-AS `isd_as` identifier must be unique globally
-   - Link Assignment `interface_id` must be unique per ISD-AS
-   - Link Assignment `peer` identifier must be unique per ISD-AS
+### Key Implementation Notes
 
-2. **Cascading Deletes:**
-   - Deleting an organization will delete all associated ISD-ASes
-   - Deleting an ISD-AS will delete all associated link assignments
-
-3. **Peer Field Format:**
-   - The `peer` field should follow the format `{isd}-{as}#{interface_number}`
-   - Examples: `1-ff00:0:110#1`, `12-332#2`, `3-ff00:0:300#1`
-
-4. **Zendesk Integration:**
-   - Zendesk ticket field accepts numbers only
-   - Links to `https://anapaya.zendesk.com/agent/tickets/{ticket_number}`
+- **Unique Constraints**
+  - Organization `short_name` must be unique globally
+  - ISD-AS `isd_as` identifier must be unique globally
+  - Link Assignment `interface_id` must be unique per ISD-AS
+  - Link Assignment `peer` (when non-empty) must be unique per ISD-AS
+- **Cascading Deletes**
+  - Deleting an organization deletes all associated ISD-ASes
+  - Deleting an ISD-AS deletes all associated link assignments
+- **Peer Field Format (Recommended)**
+  - `{isd}-{as}#{interface_number}` e.g. `1-ff00:0:110#1`, `12-332#2`
+- **Ticket Normalization**
+  - Raw `ticket` stored exactly as provided (no validation)
+  - `ticket_url` derived heuristically:
+    - Starts with scheme (`https://`, `http://`, custom) -> used as-is
+    - Starts with `//` -> `https:` prefixed
+    - Contains a dot, no spaces (domain heuristic) -> `https://` prefixed
+    - Otherwise no URL derived (clients may still display raw value)
+- **Underlay Fields Validation**
+  - Format: `ip:port`
+  - IP may be IPv4 or IPv6 (IPv6 optionally bracketed: `[2001:db8::1]`)
+  - Port must be a positive integer
 
 For more information, refer to the main plugin documentation or NetBox API documentation.
