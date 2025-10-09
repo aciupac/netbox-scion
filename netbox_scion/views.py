@@ -234,6 +234,59 @@ class SCIONLinkAssignmentEditView(generic.ObjectEditView):
     queryset = models.SCIONLinkAssignment.objects.all()
     form = forms.SCIONLinkAssignmentForm
     template_name = 'netbox_scion/scionlinkassignment_edit.html'
+    
+    def get_extra_addanother_params(self, request):
+        """
+        Return extra parameters to pass when redirecting to the create form 
+        after clicking 'Create & Add Another'.
+        """
+        params = {}
+        
+        # Get the object that was just created
+        if hasattr(self, 'object') and self.object:
+            # Pre-fill ISD-AS
+            if self.object.isd_as:
+                params['isd_as'] = self.object.isd_as.pk
+            
+            # Calculate next interface_id
+            next_interface_id = self.object.interface_id + 1
+            
+            # Check if that interface_id already exists, increment until we find a free one
+            while models.SCIONLinkAssignment.objects.filter(
+                isd_as=self.object.isd_as, 
+                interface_id=next_interface_id
+            ).exists():
+                next_interface_id += 1
+            
+            params['interface_id'] = next_interface_id
+        
+        return params
+    
+    def get_return_url(self, request, obj=None):
+        """
+        Override to handle 'Create & Add Another' button.
+        When user clicks that button, return to the create form with pre-filled values.
+        """
+        # Check if "Create & Add Another" was clicked
+        if '_addanother' in request.POST and obj:
+            # Set the object so get_extra_addanother_params can use it
+            self.object = obj
+            
+            # Get extra parameters
+            params = self.get_extra_addanother_params(request)
+            
+            # Build URL with pre-filled query parameters
+            from django.urls import reverse
+            base_url = reverse('plugins:netbox_scion:scionlinkassignment_add')
+            
+            if params:
+                query_string = '&'.join([f'{k}={v}' for k, v in params.items()])
+                return f'{base_url}?{query_string}'
+            
+            return base_url
+        
+        # Default behavior for other buttons
+        return super().get_return_url(request, obj)
 
 
 class SCIONLinkAssignmentDeleteView(generic.ObjectDeleteView):

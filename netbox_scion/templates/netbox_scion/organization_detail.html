@@ -38,7 +38,9 @@
     <div class="col col-md-6">
         <div class="card">
             <h5 class="card-header">
-                ISD-ASes
+                <a href="{% url 'plugins:netbox_scion:isdas_list' %}?organization={{ object.pk }}" class="text-decoration-none text-primary">
+                    ISD-ASes
+                </a>
                 <div class="card-actions">
                     <a href="{% url 'plugins:netbox_scion:isdas_add' %}?organization={{ object.pk }}" class="btn btn-primary btn-sm">
                         <i class="mdi mdi-plus-thick"></i> Add
