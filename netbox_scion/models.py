@@ -177,6 +177,7 @@ class SCIONLinkAssignment(NetBoxModel):
     peer = models.CharField(
         max_length=255,
         blank=True,
+        null=True,  # Allow NULL values
         help_text="Peer identifier (optional) in format '{isd}-{as}#{interface_number}' when provided"
     )
     local_underlay = models.CharField(
@@ -214,7 +215,8 @@ class SCIONLinkAssignment(NetBoxModel):
             ),
             models.UniqueConstraint(
                 fields=['isd_as', 'peer'],
-                name='unique_peer_per_isdas'
+                name='unique_peer_per_isdas',
+                condition=models.Q(peer__isnull=False) & ~models.Q(peer='')
             )
         ]
 
@@ -253,6 +255,11 @@ class SCIONLinkAssignment(NetBoxModel):
 
     def clean(self):
         super().clean()
+        
+        # Convert empty peer to NULL for proper unique constraint handling
+        if hasattr(self, 'peer') and self.peer == '':
+            self.peer = None
+        
         # Validate underlay fields if provided
         for field_name in ('local_underlay', 'peer_underlay'):
             value = getattr(self, field_name, '') or ''

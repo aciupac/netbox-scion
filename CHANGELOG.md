@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2025-10-07
+
+### Added
+- "Create & Add Another" button now maintains ISD-AS value and auto-increments interface ID when creating multiple SCION Link Assignments
+- ISD-ASes section header on Organization detail page is now a clickable link that filters the ISD-AS list by that organization
+
+### Fixed
+- Fixed appliance field not auto-selecting existing value when editing a SCION Link Assignment
+- Fixed peer field unique constraint to only validate non-empty values, allowing multiple links with empty peer field for the same ISD-AS (migration 0018)
+
 ## [1.3.0] - 2025-10-01
 
 ### Added

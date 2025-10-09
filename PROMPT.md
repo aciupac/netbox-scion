@@ -54,7 +54,7 @@ Class: `NetBoxScionConfig(PluginConfig)`
 - `base_url = 'scion'` → All plugin UI paths: `/plugins/scion/...`
 - `urls = 'urls'`, `api_urls = 'api.urls'`
 - `default_settings = { 'top_level_menu': True }` toggles menu integration
-- Version constants duplicated (`__version__ = '1.3.0'` vs `setup.py` version `1.3`) – mismatch
+- Version: `1.3.1` (current)
 
 ---
 ## 5. Data Model Overview (in `models.py`)
@@ -346,7 +346,24 @@ NetBox plugin named `netbox_scion` providing CRUD & API for Organizations, ISD-A
 When adding functionality: update `CHANGELOG.md` section for new unreleased version (e.g., `[1.3.1] - YYYY-MM-DD`). Maintain Added / Changed / Fixed / Removed headings following Keep a Changelog format.
 
 ---
-## 31. Contact Points / External Integrations
+## 31. Recent Changes (v1.3.1)
+### Added
+- **"Create & Add Another" workflow enhancement**: Modified `SCIONLinkAssignmentEditView` to override `get_return_url()` and `get_extra_addanother_params()`. When the user clicks "Create & Add Another" button, the form now:
+  - Maintains the ISD-AS value from the previously created link
+  - Auto-increments the interface ID (skipping any already-used IDs)
+  - Pre-fills these values via URL query parameters
+  - Updated `SCIONLinkAssignmentForm.__init__` to handle pre-filled query parameters for new instances
+- **Filterable section headers**: Made section headers clickable links in detail pages:
+  - ISD-AS detail page: "SCION Link Assignments" header links to filtered list (`?isd_as={id}`)
+  - Organization detail page: "ISD-ASes" header links to filtered list (`?organization={id}`)
+  - Improves navigation and allows users to quickly view all related items
+
+### Fixed
+- **Appliance field auto-selection on edit**: Modified `SCIONLinkAssignmentForm.__init__` to set `self.fields['core'].initial = self.instance.core` when editing an existing link assignment. This ensures the appliance dropdown is pre-populated with the current value instead of appearing empty, improving user experience and reducing editing errors.
+- **Peer field unique constraint**: Changed the `peer` field to allow `NULL` values and updated the unique constraint to only validate non-empty peer values (migration 0018). This allows multiple SCION Link Assignments with empty peer fields for the same ISD-AS, while still enforcing uniqueness for actual peer values. Modified both `SCIONLinkAssignment.clean()` and `SCIONLinkAssignmentForm.clean_peer()` to convert empty strings to `None` for proper constraint handling.
+
+---
+## 32. Contact Points / External Integrations
 - Zendesk: Only stored as numeric ID → URL pattern `https://anapaya.zendesk.com/agent/tickets/{id}` hardcoded in `get_zendesk_url()`; if multi-tenant support required, externalize base URL to plugin settings.
 
 ---

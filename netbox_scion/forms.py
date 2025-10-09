@@ -134,6 +134,28 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
             choices = [('', '--- Select ISD-AS first ---')]
         
         self.fields['core'].choices = choices
+        
+        # Auto-select appliance field when editing an existing link
+        if self.instance and self.instance.pk and self.instance.core:
+            self.fields['core'].initial = self.instance.core
+        
+        # Handle "Create & Add Another" pre-filled values from query parameters
+        # This is populated by the view when returning from a successful creation
+        if hasattr(self, 'initial') and not self.instance.pk:
+            # Pre-fill ISD-AS if provided
+            if 'isd_as' in self.initial and self.initial['isd_as']:
+                try:
+                    prefill_isdas = ISDAS.objects.get(pk=self.initial['isd_as'])
+                    # Update choices for the pre-filled ISD-AS
+                    appliances = prefill_isdas.appliances or []
+                    choices = [(appliance, appliance) for appliance in appliances]
+                    if choices:
+                        choices.insert(0, ('', '--- Select Appliance ---'))
+                    else:
+                        choices = [('', 'No appliances available')]
+                    self.fields['core'].choices = choices
+                except (ISDAS.DoesNotExist, ValueError, TypeError):
+                    pass
     
     def full_clean(self):
         # Override full_clean to update core choices before validation
@@ -158,6 +180,15 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
         # No special validation; allow any trimmed string (may become a URL on display)
         ticket = self.cleaned_data.get('ticket', '')
         return ticket.strip() if isinstance(ticket, str) else ticket
+    
+    def clean_peer(self):
+        # Convert empty peer to None for proper unique constraint handling
+        peer = self.cleaned_data.get('peer', '')
+        if isinstance(peer, str):
+            peer = peer.strip()
+            # Return None for empty strings so the unique constraint works correctly
+            return peer if peer else None
+        return peer
 
     def clean(self):
         cleaned_data = super().clean()
