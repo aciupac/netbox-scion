@@ -113,8 +113,8 @@
                         </td>
                     </tr>
                     <tr>
-                        <th scope="row">Full ISD-AS Path</th>
-                        <td>{{ object.isd_as.isd_as }}</td>
+                        <th scope="row">ISD-AS</th>
+                        <td><a href="{% url 'plugins:netbox_scion:isdas' object.isd_as.pk %}">{{ object.isd_as.isd_as }}</a></td>
                     </tr>
                     {% if object.isd_as.appliances %}
                     <tr>

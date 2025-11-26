@@ -34,14 +34,26 @@ document.addEventListener('DOMContentLoaded', function() {
     let isdasTomSelect = null;
     let coreTomSelect = null;
     
-    // Wait for Tom Select to initialize
-    setTimeout(() => {
-        // Use the Tom Select instances that are already attached to the fields
-        isdasTomSelect = isdasField.tomselect || null;
-        coreTomSelect = coreField.tomselect || null;
-    }, 100);
+    // Wait for Tom Select to initialize with polling
+    const waitForTomSelect = (callback, maxAttempts = 20, attempt = 0) => {
+        if (attempt >= maxAttempts) {
+            console.warn('Tom Select did not initialize in time');
+            callback();
+            return;
+        }
+        
+        // Check if Tom Select instances are available
+        if (isdasField.tomselect && coreField.tomselect) {
+            isdasTomSelect = isdasField.tomselect;
+            coreTomSelect = coreField.tomselect;
+            callback();
+        } else {
+            // Try again after a short delay
+            setTimeout(() => waitForTomSelect(callback, maxAttempts, attempt + 1), 10);
+        }
+    };
     
-    function updateCoreOptions(isdasId) {
+    function updateCoreOptions(isdasId, preserveValue = null) {
         if (!isdasId) {
             if (coreTomSelect) {
                 coreTomSelect.clear();
@@ -53,6 +65,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 coreField.disabled = true;
             }
             return;
+        }
+        
+        // Remember the current value if we need to preserve it
+        if (preserveValue === null) {
+            preserveValue = coreTomSelect ? coreTomSelect.getValue() : coreField.value;
         }
         
         // Show loading state
@@ -84,6 +101,29 @@ document.addEventListener('DOMContentLoaded', function() {
                                 coreTomSelect.addOption({value: appliance, text: appliance});
                             });
                             coreTomSelect.enable();
+                            
+                            // Restore the previous value if it exists in the new options
+                            if (preserveValue && appliances.includes(preserveValue)) {
+                                // Wait for Tom Select to finish rendering by checking if options are available
+                                const waitForReady = (callback, maxAttempts = 10, attempt = 0) => {
+                                    if (attempt >= maxAttempts) {
+                                        console.warn('Tom Select did not become ready in time');
+                                        return;
+                                    }
+                                    
+                                    // Check if Tom Select has the option available
+                                    if (coreTomSelect.options && coreTomSelect.options[preserveValue]) {
+                                        callback();
+                                    } else {
+                                        // Try again after a short delay
+                                        setTimeout(() => waitForReady(callback, maxAttempts, attempt + 1), 10);
+                                    }
+                                };
+                                
+                                waitForReady(() => {
+                                    coreTomSelect.setValue(preserveValue, true);
+                                });
+                            }
                         } else {
                             coreTomSelect.addOption({value: '', text: 'No appliances available'});
                             coreTomSelect.disable();
@@ -95,7 +135,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         if (appliances.length > 0) {
                             coreField.innerHTML += '<option value="">--- Select Appliance ---</option>';
                             appliances.forEach(appliance => {
-                                coreField.innerHTML += `<option value="${appliance}">${appliance}</option>`;
+                                const selected = (appliance === preserveValue) ? ' selected' : '';
+                                coreField.innerHTML += `<option value="${appliance}"${selected}>${appliance}</option>`;
                             });
                             coreField.disabled = false;
                         } else {
@@ -109,7 +150,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (appliances.length > 0) {
                         coreField.innerHTML += '<option value="">--- Select Appliance ---</option>';
                         appliances.forEach(appliance => {
-                            coreField.innerHTML += `<option value="${appliance}">${appliance}</option>`;
+                            const selected = (appliance === preserveValue) ? ' selected' : '';
+                            coreField.innerHTML += `<option value="${appliance}"${selected}>${appliance}</option>`;
                         });
                         coreField.disabled = false;
                     } else {
@@ -144,14 +186,21 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Set up change listener after Tom Select initialization
-    setTimeout(() => {
+    // Initialize after Tom Select is ready
+    waitForTomSelect(() => {
         setupChangeListener();
         
-        const currentValue = isdasTomSelect ? isdasTomSelect.getValue() : isdasField.value;
-        if (currentValue) {
-            updateCoreOptions(currentValue);
+        const currentIsdasValue = isdasTomSelect ? isdasTomSelect.getValue() : isdasField.value;
+        
+        if (currentIsdasValue) {
+            // Only try to preserve the appliance value if we're editing an existing link
+            // (indicated by the data-initial-value attribute)
+            let currentCoreValue = coreField.getAttribute('data-initial-value');
+            
+            // Pass the current core value to preserve it during the update (if editing)
+            updateCoreOptions(currentIsdasValue, currentCoreValue);
         } else {
+            // No ISD-AS selected, disable appliance dropdown
             if (coreTomSelect) {
                 coreTomSelect.clear();
                 coreTomSelect.clearOptions();
@@ -162,7 +211,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 coreField.disabled = true;
             }
         }
-    }, 200);
+    });
 });
 </script>
 {% endblock %}
