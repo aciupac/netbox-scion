@@ -357,7 +357,12 @@ When adding functionality: update `CHANGELOG.md` section for new unreleased vers
 - **SCION Link Assignment detail page**: Changed "Full ISD-AS Path" label to "ISD-AS" in Related Information section and made the value clickable, linking to the ISD-AS detail page for better navigation consistency.
 
 ### Fixed
-- **Appliance field auto-selection on edit**: Fixed `SCIONLinkAssignmentForm.__init__` to properly set `self.initial['core']` and added `data-initial-value` attribute to the widget. Updated the JavaScript in `scionlinkassignment_edit.html` to preserve the selected appliance value during AJAX updates by capturing the value before updating options and restoring it with a small delay to ensure Tom Select rendering completes. This prevents the dropdown from resetting when the ISD-AS field triggers an appliance list refresh.
+- **Appliance field auto-selection on edit**: Fixed `SCIONLinkAssignmentForm.__init__` to properly set `self.initial['core']` and added `data-initial-value` attribute to the widget. Updated the JavaScript in `scionlinkassignment_edit.html` to use polling-based ready-check mechanisms throughout:
+  - `waitForTomSelect()` polls for Tom Select initialization instead of 100ms/200ms fixed delays
+  - Appliance value restoration polls for option availability before setting value
+  - Maximum retry attempts (20 for initialization, 10 for value restoration) with 10ms intervals prevent infinite loops
+  - Graceful fallback with console warnings if ready state not achieved
+  - This prevents race conditions on slower systems and works reliably across different speeds
 - **Peer field unique constraint**: Changed the `peer` field to allow `NULL` values and updated the unique constraint to only validate non-empty peer values (migration 0018). This allows multiple SCION Link Assignments with empty peer fields for the same ISD-AS, while still enforcing uniqueness for actual peer values. Modified both `SCIONLinkAssignment.clean()` and `SCIONLinkAssignmentForm.clean_peer()` to convert empty strings to `None` for proper constraint handling.
 
 ---

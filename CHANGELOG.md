@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.3.1] - 2025-10-07
+## [1.3.1] - 2025-11-26
 
 ### Added
 - Clickable ISD-ASes section header on Organization detail page that filters the ISD-AS list
@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Appliance field now correctly auto-selects existing value when editing a SCION Link Assignment
+- JavaScript initialization and value restoration now use polling-based ready checks instead of fixed timeouts for better reliability across different system speeds
 - Peer field unique constraint now allows multiple links with empty peer field for the same ISD-AS
 
 ## [1.3.0] - 2025-10-01
