@@ -20,7 +20,7 @@ This is the recommended production approach using a custom Dockerfile.
 **1. Create plugin requirements file:**
 ```bash
 # Create plugin_requirements.txt in your netbox-docker directory
-echo "netbox-scion==1.3.0" > plugin_requirements.txt
+echo "netbox-scion==1.3.1" > plugin_requirements.txt
 ```
 
 **2. Create Dockerfile-Plugins:**
@@ -261,7 +261,7 @@ If upgrading from older versions:
 ```bash
 # Remove old installations
 pip uninstall netbox-scion
-pip install netbox-scion==1.3.0
+pip install netbox-scion==1.3.1
 
 # Clear Python cache
 find . -name "*.pyc" -delete

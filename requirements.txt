@@ -1,9 +1,9 @@
 # NetBox SCION Plugin Requirements
-# This plugin is designed to work with NetBox 3.5+
+# This plugin is designed to work with NetBox 4.0+
 
-# Core dependencies (provided by NetBox)
-# django>=3.2
-# django-filter
-# netbox>=3.5
-
-# Plugin does not require additional dependencies beyond NetBox core
+# No additional dependencies required beyond NetBox core
+# All dependencies are provided by the NetBox installation:
+#   - Django (provided by NetBox)
+#   - django-filter (provided by NetBox)
+#   - django-tables2 (provided by NetBox)
+#   - djangorestframework (provided by NetBox)

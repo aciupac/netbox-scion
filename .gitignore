@@ -64,3 +64,6 @@ Thumbs.db
 # Backup files
 *.backup
 *~
+
+# Development/documentation files
+PROMPT.md
