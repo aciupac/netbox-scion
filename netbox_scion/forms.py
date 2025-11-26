@@ -136,26 +136,17 @@ class SCIONLinkAssignmentForm(NetBoxModelForm):
         self.fields['core'].choices = choices
         
         # Auto-select appliance field when editing an existing link
+        # Must happen AFTER choices are set
         if self.instance and self.instance.pk and self.instance.core:
-            self.fields['core'].initial = self.instance.core
-        
-        # Handle "Create & Add Another" pre-filled values from query parameters
-        # This is populated by the view when returning from a successful creation
-        if hasattr(self, 'initial') and not self.instance.pk:
-            # Pre-fill ISD-AS if provided
-            if 'isd_as' in self.initial and self.initial['isd_as']:
-                try:
-                    prefill_isdas = ISDAS.objects.get(pk=self.initial['isd_as'])
-                    # Update choices for the pre-filled ISD-AS
-                    appliances = prefill_isdas.appliances or []
-                    choices = [(appliance, appliance) for appliance in appliances]
-                    if choices:
-                        choices.insert(0, ('', '--- Select Appliance ---'))
-                    else:
-                        choices = [('', 'No appliances available')]
-                    self.fields['core'].choices = choices
-                except (ISDAS.DoesNotExist, ValueError, TypeError):
-                    pass
+            # Ensure the current core value is in the choices
+            if self.instance.core not in [choice[0] for choice in choices]:
+                # Add the current value if it's not in the choices (safety fallback)
+                choices.append((self.instance.core, self.instance.core))
+                self.fields['core'].choices = choices
+            # Set the initial value to pre-select in the dropdown
+            self.initial['core'] = self.instance.core
+            # Also add a data attribute to help JavaScript
+            self.fields['core'].widget.attrs['data-initial-value'] = self.instance.core
     
     def full_clean(self):
         # Override full_clean to update core choices before validation

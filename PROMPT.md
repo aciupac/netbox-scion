@@ -348,18 +348,16 @@ When adding functionality: update `CHANGELOG.md` section for new unreleased vers
 ---
 ## 31. Recent Changes (v1.3.1)
 ### Added
-- **"Create & Add Another" workflow enhancement**: Modified `SCIONLinkAssignmentEditView` to override `get_return_url()` and `get_extra_addanother_params()`. When the user clicks "Create & Add Another" button, the form now:
-  - Maintains the ISD-AS value from the previously created link
-  - Auto-increments the interface ID (skipping any already-used IDs)
-  - Pre-fills these values via URL query parameters
-  - Updated `SCIONLinkAssignmentForm.__init__` to handle pre-filled query parameters for new instances
 - **Filterable section headers**: Made section headers clickable links in detail pages:
   - ISD-AS detail page: "SCION Link Assignments" header links to filtered list (`?isd_as={id}`)
   - Organization detail page: "ISD-ASes" header links to filtered list (`?organization={id}`)
   - Improves navigation and allows users to quickly view all related items
 
+### Changed
+- **SCION Link Assignment detail page**: Changed "Full ISD-AS Path" label to "ISD-AS" in Related Information section and made the value clickable, linking to the ISD-AS detail page for better navigation consistency.
+
 ### Fixed
-- **Appliance field auto-selection on edit**: Modified `SCIONLinkAssignmentForm.__init__` to set `self.fields['core'].initial = self.instance.core` when editing an existing link assignment. This ensures the appliance dropdown is pre-populated with the current value instead of appearing empty, improving user experience and reducing editing errors.
+- **Appliance field auto-selection on edit**: Fixed `SCIONLinkAssignmentForm.__init__` to properly set `self.initial['core']` and added `data-initial-value` attribute to the widget. Updated the JavaScript in `scionlinkassignment_edit.html` to preserve the selected appliance value during AJAX updates by capturing the value before updating options and restoring it with a small delay to ensure Tom Select rendering completes. This prevents the dropdown from resetting when the ISD-AS field triggers an appliance list refresh.
 - **Peer field unique constraint**: Changed the `peer` field to allow `NULL` values and updated the unique constraint to only validate non-empty peer values (migration 0018). This allows multiple SCION Link Assignments with empty peer fields for the same ISD-AS, while still enforcing uniqueness for actual peer values. Modified both `SCIONLinkAssignment.clean()` and `SCIONLinkAssignmentForm.clean_peer()` to convert empty strings to `None` for proper constraint handling.
 
 ---
