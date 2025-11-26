@@ -10,7 +10,7 @@ description = "NetBox plugin for managing SCION Links Assignment"
 readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "Apache-2.0" }
-authors = [ { name = "Andrei Ciupac", email = "andrei.ciupac@anapaya.net" } ]
+authors = [ { name = "Anapaya Systems AG", email = "ops@anapaya.net" } ]
 keywords = ["netbox", "plugin", "scion"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
